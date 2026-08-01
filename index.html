@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d7a6f">
+<title>MedVault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Nastaliq+Urdu:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0b0f10; --ink2:#2b3437; --muted:#69757c; --faint:#98a2a8;
+  --line:#e3e7e6; --line2:#f0f2f1; --paper:#ffffff; --wash:#f6f8f8;
+  --teal:#0d7a6f; --teal-deep:#094f49; --teal-wash:#e7f3f0; --teal-line:#bcdcd6;
+  --red:#b42318; --red-wash:#fdeceb; --amber:#a05a00; --amber-wash:#fdf3e7;
+  --r:14px; --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--wash)}
+body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;min-height:100vh}
+#app{max-width:520px;margin:0 auto;min-height:100vh;background:var(--paper);display:flex;flex-direction:column;position:relative;box-shadow:0 0 40px rgba(11,15,16,.06)}
+
+/* header */
+header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--line2);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.wordmark{font-family:'Playfair Display',serif;font-size:21px;font-weight:700;letter-spacing:-.02em}
+.wordmark span{color:var(--teal)}
+.htools{display:flex;gap:6px;align-items:center}
+.iconbtn{width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:#fff;cursor:pointer;display:grid;place-items:center;color:var(--ink2);padding:0}
+.iconbtn:active{background:var(--teal-wash)}
+.iconbtn svg{width:16px;height:16px}
+.iconbtn.txt{width:auto;padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.05em;font-weight:500}
+.modepill{display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;border:1px solid #ecd9b8;color:var(--amber);background:var(--amber-wash);border-radius:6px;padding:4px 8px;cursor:pointer}
+.modepill i{width:6px;height:6px;border-radius:50%;background:var(--amber)}
+.modepill.online{border-color:var(--teal-line);color:var(--teal-deep);background:var(--teal-wash)}
+.modepill.online i{background:var(--teal)}
+
+/* layout */
+main{flex:1;padding-bottom:calc(86px + var(--safe-b))}
+.pad{padding:0 16px}
+.sec{padding:18px 16px 6px}
+.lbl{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+h1.ttl{font-family:'Playfair Display',serif;font-weight:700;font-size:26px;line-height:1.16;margin:7px 0 0;letter-spacing:-.01em}
+p.note{font-size:13px;line-height:1.6;color:var(--muted);margin:7px 0 0}
+.card{border:1px solid var(--line);border-radius:var(--r);background:#fff;overflow:hidden}
+.card+.card{margin-top:10px}
+.cardpad{padding:14px}
+.btn{font:inherit;font-size:14px;font-weight:600;border-radius:11px;padding:13px 16px;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:#fff;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;transition:.15s}
+.btn:active{background:var(--teal-deep);border-color:var(--teal-deep)}
+.btn.ghost{background:#fff;color:var(--ink);border-color:var(--line)}
+.btn.ghost:active{background:var(--teal-wash)}
+.btn.danger{background:#fff;color:var(--red);border-color:#f1cdc9}
+.btn.sm{padding:9px 13px;font-size:12.5px;border-radius:9px;width:auto}
+.btn[disabled]{opacity:.5;pointer-events:none}
+.btnrow{display:flex;gap:9px}
+.btnrow .btn{flex:1;width:auto}
+.chip{display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.06em;border:1px solid var(--teal-line);color:var(--teal-deep);background:#fff;border-radius:6px;padding:4px 8px;white-space:nowrap}
+.chip.mute{border-color:var(--line);color:var(--muted)}
+.chip.warn{border-color:#ecd9b8;color:var(--amber);background:var(--amber-wash)}
+.chip.bad{border-color:#f1cdc9;color:var(--red);background:var(--red-wash)}
+.mono{font-family:'IBM Plex Mono',monospace}
+.tiny{font-size:11.5px;line-height:1.6;color:var(--muted)}
+.simnote{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;line-height:1.55;color:var(--amber);background:var(--amber-wash);border:1px solid #f0e2cd;border-radius:10px;padding:10px 12px}
+.simnote.teal{color:var(--teal-deep);background:var(--teal-wash);border-color:var(--teal-line)}
+.simnote.red{color:var(--red);background:var(--red-wash);border-color:#f1cdc9}
+.simnote svg{width:14px;height:14px;flex:0 0 auto;margin-top:1px}
+
+/* forms */
+.field{margin-bottom:13px}
+.field label{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;font:inherit;font-size:15px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-wash)}
+.pinrow{display:flex;gap:8px;justify-content:center}
+.pinrow input{width:52px;height:60px;text-align:center;font-size:26px;font-family:'IBM Plex Mono',monospace;border:1.5px solid var(--line);border-radius:12px}
+.pinrow input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-wash)}
+
+/* tabs */
+nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:40;max-width:520px;margin:0 auto;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:7px 4px calc(10px + var(--safe-b))}
+nav.tabs button{border:0;background:none;cursor:pointer;padding:6px 2px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--faint);font:inherit;font-size:9.5px;font-weight:500}
+nav.tabs button svg{width:20px;height:20px}
+nav.tabs button.on{color:var(--teal)}
+.fab{position:fixed;right:max(16px,calc(50vw - 244px));bottom:calc(86px + var(--safe-b));z-index:41;border:0;cursor:pointer;background:var(--ink);color:#fff;border-radius:999px;padding:13px 18px 13px 15px;font:inherit;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:8px;box-shadow:0 10px 24px -8px rgba(11,15,16,.55)}
+.fab svg{width:16px;height:16px}
+
+/* records */
+.rec{display:flex;gap:12px;padding:12px 13px;border:1px solid var(--line);border-radius:13px;background:#fff;cursor:pointer;margin-bottom:9px;text-align:left;width:100%;font:inherit;transition:.12s}
+.rec:active{border-color:var(--teal-line);background:var(--teal-wash)}
+.rec .ic{width:34px;height:34px;border-radius:9px;flex:0 0 auto;display:grid;place-items:center;background:var(--teal-wash);color:var(--teal-deep)}
+.rec .ic svg{width:16px;height:16px}
+.rec .ic.lab{background:#eef2fb;color:#2b4a86}.rec .ic.rx{background:#f2eefb;color:#5a3f96}
+.rec .ic.imaging{background:#eef4f3;color:#0d5f57}.rec .ic.dx{background:#fdf3e7;color:var(--amber)}
+.rec .ic.proc{background:var(--red-wash);color:var(--red)}.rec .ic.vac{background:#edf6ef;color:#2f6b45}
+.rec .bd{flex:1;min-width:0}
+.rec .t{font-size:13.5px;font-weight:600;line-height:1.35}
+.rec .m{font-size:11.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rec .d{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--faint);flex:0 0 auto;letter-spacing:.02em;padding-top:2px}
+.filters{display:flex;gap:7px;overflow-x:auto;padding:12px 16px 6px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.fchip{flex:0 0 auto;font-size:12px;font-weight:500;border:1px solid var(--line);background:#fff;color:var(--ink2);border-radius:999px;padding:8px 13px;cursor:pointer;font-family:inherit}
+.fchip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.searchwrap{padding:10px 16px 2px;position:relative}
+.searchwrap input{width:100%;font:inherit;font-size:14px;padding:11px 12px 11px 36px;border:1px solid var(--line);border-radius:11px;background:#fff}
+.searchwrap svg{position:absolute;left:28px;top:22px;width:15px;height:15px;color:var(--faint)}
+.tlgroup{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.14em;color:var(--faint);margin:16px 0 9px;display:flex;align-items:center;gap:8px}
+.tlgroup::after{content:'';flex:1;height:1px;background:var(--line2)}
+.empty{text-align:center;padding:52px 30px;color:var(--muted)}
+.empty svg{width:30px;height:30px;color:var(--faint);margin-bottom:12px}
+.empty p{font-size:13px;line-height:1.65;margin:0}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line2);font-size:13px}
+.kv:first-of-type{border-top:0}
+.kv .k{color:var(--muted);flex:0 0 auto}
+.kv .v{text-align:right;font-weight:500;min-width:0;word-break:break-word}
+table.vals{width:100%;border-collapse:collapse;font-size:12.5px}
+table.vals th{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);text-align:left;font-weight:500;padding:0 0 8px}
+table.vals td{padding:9px 0;border-top:1px solid var(--line2)}
+table.vals td.n{font-family:'IBM Plex Mono',monospace;text-align:right}
+table.vals tr.hi td.n{color:var(--red);font-weight:500}
+.medrow{display:flex;justify-content:space-between;gap:10px;padding:11px 14px;border-top:1px solid var(--line2);font-size:13px}
+.medrow:first-child{border-top:0}
+.attach{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:11px;margin-top:8px;cursor:pointer;background:#fff;width:100%;font:inherit;text-align:left}
+.attach .ic{width:34px;height:34px;border-radius:8px;background:var(--teal-wash);color:var(--teal-deep);display:grid;place-items:center;flex:0 0 auto}
+.attach .ic svg{width:16px;height:16px}
+.attach img.thumb{width:34px;height:34px;border-radius:8px;object-fit:cover;flex:0 0 auto}
+
+/* charts */
+.chart{width:100%;height:auto;display:block;overflow:visible}
+.chart .grid{stroke:var(--line2);stroke-width:1}
+.chart .band{fill:var(--teal-wash);opacity:.55}
+.chart .bandline{stroke:var(--teal-line);stroke-dasharray:3 3;stroke-width:1}
+.chart .ln{fill:none;stroke:var(--ink);stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
+.chart .pt{fill:#fff;stroke:var(--ink);stroke-width:1.6}
+.chart .pt.hi{stroke:var(--red);fill:var(--red)}
+.chart .ax{font-family:'IBM Plex Mono',monospace;font-size:7.5px;fill:var(--faint)}
+.chart .val{font-family:'IBM Plex Mono',monospace;font-size:8px;fill:var(--ink2)}
+
+/* lock + enroll */
+.gate{position:fixed;inset:0;z-index:100;background:linear-gradient(170deg,#f7faf9,#eef3f2);display:flex;align-items:center;justify-content:center;padding:20px}
+.gatecard{width:100%;max-width:420px;background:#fff;border:1px solid var(--line);border-radius:22px;padding:28px 22px;box-shadow:0 30px 60px -30px rgba(11,15,16,.35)}
+.gate .wordmark{font-size:26px}
+.codebox{font-family:'IBM Plex Mono',monospace;font-size:17px;letter-spacing:.08em;text-align:center;background:var(--wash);border:1.5px dashed var(--teal-line);border-radius:12px;padding:16px;color:var(--teal-deep);user-select:all}
+.steps{display:flex;gap:6px;margin-bottom:18px}
+.steps i{height:3px;flex:1;border-radius:2px;background:var(--line)}
+.steps i.on{background:var(--teal)}
+
+/* emergency */
+.ecard{border:1px solid #f1cdc9;border-radius:var(--r);background:linear-gradient(180deg,#fff,#fdf7f6);padding:16px}
+.bigblood{font-family:'Playfair Display',serif;font-size:42px;font-weight:800;color:var(--red);line-height:1}
+
+/* toast + sheet */
+.toast{position:fixed;left:16px;right:16px;bottom:calc(96px + var(--safe-b));z-index:80;max-width:488px;margin:0 auto;background:var(--ink);color:#fff;border-radius:12px;padding:13px 15px;font-size:12.5px;line-height:1.5;display:none;align-items:flex-start;gap:9px;box-shadow:0 14px 30px -12px rgba(11,15,16,.7)}
+.toast.show{display:flex;animation:up .2s ease-out}
+.toast svg{width:15px;height:15px;flex:0 0 auto;margin-top:1px;color:#7fd0c3}
+@keyframes up{from{transform:translateY(10px);opacity:.5}to{transform:none;opacity:1}}
+.qrbox{display:grid;place-items:center;padding:18px;background:#fff;border:1px solid var(--line);border-radius:14px}
+.qrbox canvas{width:200px;height:200px}
+
+/* urdu */
+body.ur #app{direction:rtl}
+body.ur .u{font-family:'Noto Nastaliq Urdu',serif;line-height:2}
+body.ur h1.ttl,body.ur .rec .t{font-family:'Noto Nastaliq Urdu',serif;font-weight:600;line-height:1.9}
+body.ur .mono,body.ur .rec .d,body.ur .chip,body.ur .lbl{direction:ltr;unicode-bidi:embed}
+body.ur .lbl{font-family:'Noto Nastaliq Urdu',serif;letter-spacing:.01em;text-transform:none;font-size:11.5px;line-height:2;direction:rtl}
+body.ur table.vals td,body.ur .medrow,body.ur .kv .v{direction:ltr}
+body.ur .searchwrap svg{left:auto;right:28px}
+body.ur .searchwrap input{padding:11px 36px 11px 12px}
+@media(min-width:560px){ .fab{right:calc(50vw - 244px)} }
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="hdr" style="display:none">
+    <div class="wordmark">Med<span>Vault</span></div>
+    <div class="htools">
+      <button class="modepill" id="modepill" onclick="go('settings')"><i></i><span id="modelabel">DEVICE MODE</span></button>
+      <button class="iconbtn txt" id="langbtn" onclick="toggleLang()">EN</button>
+      <button class="iconbtn" onclick="lockNow()" title="Lock" aria-label="Lock vault">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4.8" y="10.5" width="14.4" height="9.7" rx="2.2"/><path d="M8.2 10.5V7.8a3.8 3.8 0 0 1 7.6 0v2.7"/></svg>
+      </button>
+    </div>
+  </header>
+  <main id="screen"></main>
+  <nav class="tabs" id="tabs" style="display:none"></nav>
+  <button class="fab" id="fab" style="display:none" onclick="go('add')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+    <span id="fablabel">Add record</span>
+  </button>
+  <div class="toast" id="toast"></div>
+  <div id="gate"></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+<script>
+'use strict';
+/* =====================================================================
+   MedVault Web v0.1.0 — the real application (device mode)
+   ---------------------------------------------------------------------
+   Records are AES-256-GCM encrypted with per-record keys wrapped under a
+   master key derived from your PIN (PBKDF2-SHA256, 600k iterations) —
+   the same tested hierarchy as the Phase 1 scaffold (SPEC §4).
+   DEVICE MODE: everything lives in this browser's IndexedDB. Connecting
+   a Supabase backend (SPEC §2) turns on sync, sign-in and QR consent.
+   ===================================================================== */
+
+/* ---------------- backend config (filled at connect time) ---------------- */
+const BACKEND = {
+  url:'https://dxaolrxrpdkrmonwcwth.supabase.co',
+  anonKey:'sb_publishable_Y0uxVF0NYpjQqNyNBZr-5g_CgV_2p_N',
+  functionsUrl:'https://dxaolrxrpdkrmonwcwth.supabase.co/functions/v1',
+  gatewayUrl:'https://asimshafi.github.io/medvault-app/gateway.html'
+};
+
+/* ---------------- crypto core (mirrors @medvault/core, tested) ---------------- */
+const subtle=crypto.subtle, te=new TextEncoder(), td=new TextDecoder();
+const rand=n=>crypto.getRandomValues(new Uint8Array(n));
+const PBKDF2_ITERS=600000, GCM_NONCE=12;
+const b64e=b=>{let s='';for(const x of new Uint8Array(b))s+=String.fromCharCode(x);return btoa(s)};
+const b64d=s=>{const t=atob(s);const o=new Uint8Array(t.length);for(let i=0;i<t.length;i++)o[i]=t.charCodeAt(i);return o};
+async function deriveMK(pin,salt,iters){
+  const km=await subtle.importKey('raw',te.encode(String(pin)),'PBKDF2',false,['deriveBits']);
+  return new Uint8Array(await subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt,iterations:iters||PBKDF2_ITERS},km,256));
+}
+async function aeadSeal(key,pt,aad){
+  const k=await subtle.importKey('raw',key,'AES-GCM',false,['encrypt']);
+  const n=rand(GCM_NONCE);
+  const data=typeof pt==='string'?te.encode(pt):pt;
+  const ct=new Uint8Array(await subtle.encrypt({name:'AES-GCM',iv:n,additionalData:te.encode(aad||'')},k,data));
+  const out=new Uint8Array(n.length+ct.length); out.set(n); out.set(ct,n.length); return out;
+}
+async function aeadOpen(key,sealed,aad){
+  const k=await subtle.importKey('raw',key,'AES-GCM',false,['decrypt']);
+  return new Uint8Array(await subtle.decrypt({name:'AES-GCM',iv:sealed.slice(0,GCM_NONCE),additionalData:te.encode(aad||'')},k,sealed.slice(GCM_NONCE)));
+}
+const sealJson=async(k,id,obj)=>aeadSeal(k,JSON.stringify(obj),'record:'+id);
+const openJson=async(k,id,sl)=>JSON.parse(td.decode(await aeadOpen(k,sl,'record:'+id)));
+const wrapDek=(mk,dek,id)=>aeadSeal(mk,dek,'dek:'+id);
+const unwrapDek=(mk,w,id)=>aeadOpen(mk,w,'dek:'+id);
+function newRecoveryCode(){const a='ABCDEFGHJKMNPQRSTVWXYZ23456789';const b=rand(16);let s='';for(let i=0;i<16;i++){if(i&&i%4===0)s+='-';s+=a[b[i]%a.length]}return s}
+const recoveryKey=(code,salt)=>deriveMK(code.replace(/-/g,'').toUpperCase(),salt);
+
+/* ---------------- storage adapter ----------------
+   Real IndexedDB when the host allows it. Preview hosts (CSP-sandboxed pages)
+   deny storage entirely — then we run on an in-memory store and SAY SO in the
+   UI. Production hosting restores persistence with zero code changes. */
+const STORAGE={mode:'idb'};   // 'idb' | 'session'
+const MEM={meta:new Map(),records:new Map(),record_keys:new Map(),files:new Map()};
+const KEYPATH={meta:'id',records:'id',record_keys:'record_id',files:'id'};
+const DB_NAME='medvault-app', DB_VER=1;
+let _db=null, _idbDead=false;
+function idb(){
+  if(_idbDead) return Promise.reject(new Error('idb-denied'));
+  if(_db) return Promise.resolve(_db);
+  return new Promise((res,rej)=>{
+    let rq;
+    try{ rq=indexedDB.open(DB_NAME,DB_VER); }
+    catch(e){ _idbDead=true; STORAGE.mode='session'; return rej(e); }
+    rq.onupgradeneeded=()=>{
+      const d=rq.result;
+      d.createObjectStore('meta',{keyPath:'id'});
+      d.createObjectStore('records',{keyPath:'id'});
+      d.createObjectStore('record_keys',{keyPath:'record_id'});
+      d.createObjectStore('files',{keyPath:'id'});
+    };
+    rq.onsuccess=()=>{_db=rq.result;res(_db)};
+    rq.onerror=()=>{_idbDead=true; STORAGE.mode='session'; rej(rq.error)};
+  });
+}
+async function dbPut(store,v){
+  try{ const d=await idb(); return await new Promise((res,rej)=>{const t=d.transaction(store,'readwrite');t.objectStore(store).put(v);t.oncomplete=res;t.onerror=()=>rej(t.error)}); }
+  catch(e){ MEM[store].set(v[KEYPATH[store]],v); }
+}
+async function getOne(store,key){
+  try{ const d=await idb(); return await new Promise((res,rej)=>{const r=d.transaction(store).objectStore(store).get(key);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}); }
+  catch(e){ return MEM[store].get(key); }
+}
+async function getAll(store){
+  try{ const d=await idb(); return await new Promise((res,rej)=>{const r=d.transaction(store).objectStore(store).getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}); }
+  catch(e){ return [...MEM[store].values()]; }
+}
+async function dbDel(store,key){
+  try{ const d=await idb(); return await new Promise((res,rej)=>{const t=d.transaction(store,'readwrite');t.objectStore(store).delete(key);t.oncomplete=res;t.onerror=()=>rej(t.error)}); }
+  catch(e){ MEM[store].delete(key); }
+}
+/* localStorage may be denied on the same hosts */
+const LSMEM=new Map();
+const safeLS={
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return LSMEM.get(k)??null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){ LSMEM.set(k,v); } },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){ LSMEM.delete(k); } }
+};
+
+/* ---------------- connected layer (Supabase) ---------------- */
+const hex2=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+const pgHex=u8=>'\\x'+hex2(u8);
+function fromPgHex(v){ if(typeof v!=='string'||!v.startsWith('\\x')) return null;
+  const h=v.slice(2), o=new Uint8Array(h.length/2);
+  for(let i=0;i<o.length;i++)o[i]=parseInt(h.substr(i*2,2),16); return o; }
+async function sha256hex(str){ return hex2(await subtle.digest('SHA-256', te.encode(str))); }
+async function hkdf(secret,info){
+  const km=await subtle.importKey('raw',secret,'HKDF',false,['deriveBits']);
+  return new Uint8Array(await subtle.deriveBits({name:'HKDF',hash:'SHA-256',salt:new Uint8Array(32),info:te.encode(info)},km,256));
+}
+const grantAuthHash=async G=>hex2(await subtle.digest('SHA-256', await hkdf(G,'medvault/grant-auth/v1')));
+const wrapDekForGrant=async(G,dek,rid)=>aeadSeal(await hkdf(G,'medvault/grant-wrap/v1'),dek,'grant-dek:'+rid);
+function newDisplayToken(){const C='ABCDEFGHJKMNPQRSTUVWXYZ23456789';const r=rand(8);let a='',d='';
+  for(let i=0;i<4;i++)a+=C[r[i]%C.length]; for(let i=4;i<8;i++)d+=String(r[i]%10); return 'MV-'+a+'-'+d;}
+const b64u=u8=>b64e(u8).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+
+let SB=null;
+function sb(){
+  if(SB) return SB;
+  if(!BACKEND.url||!window.supabase) return null;
+  SB=window.supabase.createClient(BACKEND.url,BACKEND.anonKey,{auth:{
+    persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'implicit',
+    storage:{getItem:k=>safeLS.get(k),setItem:(k,v)=>safeLS.set(k,v),removeItem:k=>safeLS.del(k)}
+  }});
+  return SB;
+}
+async function sbInit(){
+  const c=sb(); if(!c) return;
+  try{
+    const {data}=await c.auth.getSession();
+    S.session=data&&data.session||null;
+    c.auth.onAuthStateChange((_e,sess)=>{ S.session=sess; updateModePill(); });
+    if(S.session&&S.mk) await ensureProfile();
+  }catch(e){}
+  updateModePill();
+}
+async function sendOtp(email){
+  const c=sb(); if(!c) return {error:'no backend'};
+  const {error}=await c.auth.signInWithOtp({email:email,options:{shouldCreateUser:true,emailRedirectTo:'https://asimshafi.github.io/medvault-app/'}});
+  return {error:error?(error.message||String(error)):null};
+}
+async function verifyOtpCode(email,code){
+  const c=sb();
+  const {data,error}=await c.auth.verifyOtp({email:email,token:code,type:'email'});
+  if(error) return {error:error.message||String(error)};
+  S.session=data.session;
+  if(S.mk) await ensureProfile();
+  return {error:null};
+}
+async function signOutSb(){ const c=sb(); if(c) await c.auth.signOut(); S.session=null; S.profileId=null; render(); }
+
+async function ensureProfile(){
+  const c=sb(); if(!c||!S.session||!S.meta) return;
+  try{
+    let {data:rows}=await c.from('profiles').select('id').eq('auth_user_id',S.session.user.id).limit(1);
+    let pid=rows&&rows[0]&&rows[0].id;
+    if(!pid){
+      const ins=await c.from('profiles').insert({auth_user_id:S.session.user.id,full_name:S.meta.name,
+        city:S.meta.city||null,cnic_masked:S.meta.cnic_masked||null}).select('id').single();
+      if(ins.error){ S.syncMsg='profile: '+ins.error.message; return; }
+      pid=ins.data.id;
+    }
+    S.profileId=pid;
+    const {data:pk}=await c.from('profile_keys').select('profile_id,kdf_salt').eq('profile_id',pid).maybeSingle();
+    const localSalt=pgHex(b64d(S.meta.salt));
+    if(!pk){
+      const up=await c.from('profile_keys').insert({profile_id:pid,kdf:S.meta.kdf,kdf_salt:localSalt,
+        mk_verify:pgHex(b64d(S.meta.verify)),recovery_salt:pgHex(b64d(S.meta.recovery_salt)),
+        mk_wrapped_recovery:pgHex(b64d(S.meta.mk_wrapped_recovery))});
+      if(up.error){ S.syncMsg='keys: '+up.error.message; return; }
+    } else if(pk.kdf_salt!==localSalt){
+      S.syncBlocked='This account already holds a different vault (from another device). Sync is paused to protect both — v0.2 does not merge vaults.';
+      updateModePill(); return;
+    }
+    S.syncBlocked=null;
+    await syncNow();
+  }catch(e){ S.syncMsg=String(e&&e.message||e); }
+}
+const canSync=()=>!!(sb()&&S.session&&S.profileId&&S.mk&&!S.syncBlocked);
+async function pushSync(){
+  if(!canSync()) return 0;
+  const c=sb(); let pushed=0;
+  const recs=await getAll('records');
+  const keys={}; for(const k of await getAll('record_keys')) keys[k.record_id]=k;
+  for(const r of recs){
+    if(r.synced_at && r.synced_at>=r.updated_at) continue;
+    const row={id:r.id,profile_id:S.profileId,record_type:r.record_type,record_date:r.record_date,
+      source:r.source,payload_ver:r.payload_ver||1,payload_cipher:pgHex(b64d(r.payload_cipher_b64||r.payload_cipher)),
+      updated_at:r.updated_at,deleted_at:r.deleted_at||null};
+    const res=await c.from('records').upsert(row,{onConflict:'id'});
+    if(res.error){ S.syncMsg='push: '+res.error.message; continue; }
+    const k=keys[r.id];
+    if(k) await c.from('record_keys').upsert({record_id:r.id,wrapped_dek:pgHex(b64d(k.wrapped_dek))},{onConflict:'record_id'});
+    r.synced_at=nowIso(); await dbPut('records',r); pushed++;
+  }
+  return pushed;
+}
+async function pullSync(){
+  if(!canSync()) return 0;
+  const c=sb(); let pulled=0;
+  const {data:rows,error}=await c.from('records').select('*').eq('profile_id',S.profileId);
+  if(error){ S.syncMsg='pull: '+error.message; return 0; }
+  const {data:krows}=await c.from('record_keys').select('*');
+  const kmap={}; for(const k of (krows||[])) kmap[k.record_id]=k;
+  for(const r of (rows||[])){
+    const loc=await getOne('records',r.id);
+    if(loc && loc.updated_at>=r.updated_at) continue;
+    const cipher=fromPgHex(r.payload_cipher); if(!cipher) continue;
+    await dbPut('records',{id:r.id,record_type:r.record_type,record_date:r.record_date,source:r.source,
+      payload_ver:r.payload_ver,payload_cipher:b64e(cipher),created_at:r.created_at,updated_at:r.updated_at,
+      deleted_at:r.deleted_at,synced_at:nowIso()});
+    const k=kmap[r.id];
+    if(k){ const w=fromPgHex(k.wrapped_dek); if(w) await dbPut('record_keys',{record_id:r.id,wrapped_dek:b64e(w)}); }
+    pulled++;
+  }
+  return pulled;
+}
+async function syncNow(){
+  if(!canSync()) return;
+  S.syncMsg='syncing…'; if(S.route==='settings') render();
+  const a=await pushSync(), b=await pullSync();
+  S.lastSync=nowIso(); S.syncMsg='';
+  if(S.route==='settings'||S.route==='vault'||S.route==='timeline') render();
+  if(a||b) toast('Synced — '+a+' up, '+b+' down');
+}
+async function auditRpc(action,detail,grantId){
+  if(!canSync()) return;
+  try{ await sb().rpc('append_audit',{p_profile_id:S.profileId,p_actor_type:'patient',
+    p_actor_name:S.meta.name,p_action:action,p_detail:detail,p_grant_id:grantId||null}); }catch(e){}
+}
+
+/* ---------------- session ---------------- */
+const S={ mk:null, meta:null, lang:safeLS.get('mv.lang')||'en', tab:'vault', filter:'all', q:'', analyte:null, route:'vault', addDraft:null, lockTimer:null, session:null, profileId:null, syncMsg:'', syncBlocked:null, lastSync:null };
+const uuid=()=>crypto.randomUUID();
+const nowIso=()=>new Date().toISOString();
+
+/* ---------------- i18n ---------------- */
+const STR={
+  en:{vault:'Vault',timeline:'Timeline',trends:'Trends',emergency:'Emergency',access:'Access',settings:'Settings',add_record:'Add record',
+    your_vault:'YOUR VAULT',records:'records',search:'Search records, doctors, medicines',all:'All',
+    labs:'Labs',meds:'Medicines',imaging:'Imaging',consults:'Consults',other:'Other',
+    no_records:'Your vault is empty. Add your first record — a lab report, prescription, or a doctor visit.',
+    no_match:'No records match this filter',save:'Save to vault',cancel:'Cancel',
+    trends_note:'Trends build themselves from the lab results you add.',
+    emergency_note:'Opens without your PIN — for paramedics. Keep it current.',
+    locked:'Vault locked',enter_pin:'Enter your PIN',wrong_pin:'Wrong PIN — try again',unlock:'Unlock',forgot:'Forgot PIN?'},
+  ur:{vault:'والٹ',timeline:'ٹائم لائن',trends:'رجحانات',emergency:'ایمرجنسی',access:'رسائی',settings:'ترتیبات',add_record:'ریکارڈ شامل کریں',
+    your_vault:'آپ کا والٹ',records:'ریکارڈ',search:'ریکارڈ، ڈاکٹر یا دوا تلاش کریں',all:'تمام',
+    labs:'لیب',meds:'ادویات',imaging:'اسکین',consults:'ملاقاتیں',other:'دیگر',
+    no_records:'آپ کا والٹ خالی ہے۔ پہلا ریکارڈ شامل کریں — لیب رپورٹ، نسخہ یا ڈاکٹر سے ملاقات۔',
+    no_match:'اس فلٹر میں کوئی ریکارڈ نہیں',save:'والٹ میں محفوظ کریں',cancel:'منسوخ',
+    trends_note:'رجحانات آپ کی شامل کردہ لیب رپورٹس سے خود بنتے ہیں۔',
+    emergency_note:'بغیر PIN کھلتا ہے — ایمبولینس عملے کے لیے۔ اسے تازہ رکھیں۔',
+    locked:'والٹ مقفل ہے',enter_pin:'اپنا PIN درج کریں',wrong_pin:'غلط PIN — دوبارہ کوشش کریں',unlock:'کھولیں',forgot:'PIN بھول گئے؟'}
+};
+const t=k=>(STR[S.lang]&&STR[S.lang][k])||STR.en[k]||k;
+
+const TYPES={
+  lab:{en:'Lab result',ur:'لیب رپورٹ'},rx:{en:'Prescription',ur:'نسخہ'},dx:{en:'Diagnosis',ur:'تشخیص'},
+  imaging:{en:'Imaging',ur:'ریڈیالوجی'},visit:{en:'Consultation',ur:'ڈاکٹر سے ملاقات'},
+  proc:{en:'Procedure',ur:'پروسیجر'},vac:{en:'Vaccination',ur:'ویکسینیشن'}
+};
+const typeName=k=>{const m=TYPES[k]||TYPES.visit;return S.lang==='ur'?m.ur:m.en};
+
+/* ---------------- helpers ---------------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const dShort=s=>{const p=String(s).split('-');return p[2]+' '+MON[+p[1]-1]+' '+p[0].slice(2)};
+const dLong=s=>{const p=String(s).split('-');return p[2].replace(/^0/,'')+' '+MON[+p[1]-1]+' '+p[0]};
+function toast(msg,ms){const el=$('#toast');el.innerHTML=ICON.check+'<span>'+msg+'</span>';el.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove('show'),ms||3400)}
+const ICON={
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4.5 12.5l5 5 10-11"/></svg>',
+  alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4.5l8.4 15H3.6z"/><path d="M12 10v4.2M12 16.6v.7"/></svg>',
+  vault:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.4" y="4.4" width="17.2" height="15.2" rx="2.6"/><circle cx="12" cy="12" r="3.4"/><path d="M12 4.4v2.2M12 17.4v2.2"/></svg>',
+  tl:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3.5v17"/><circle cx="6" cy="8" r="2"/><circle cx="6" cy="16" r="2"/><path d="M10.5 8H20M10.5 16H17"/></svg>',
+  trend:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 19.5h17"/><path d="M6 15.5l4-4.5 3.2 3 4.8-6"/></svg>',
+  heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20s-7.5-4.6-9.3-9.4C1.5 7.2 3.6 4.5 6.6 4.5c2 0 3.6 1.1 4.4 2.7.8-1.6 2.4-2.7 4.4-2.7 3 0 5.1 2.7 3.9 6.1C17.5 15.4 12 20 12 20z"/></svg>',
+  gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3.2"/><path d="M12 3.6v2.2M12 18.2v2.2M3.6 12h2.2M18.2 12h2.2M6.1 6.1l1.6 1.6M16.3 16.3l1.6 1.6M6.1 17.9l1.6-1.6M16.3 7.7l1.6-1.6"/></svg>',
+  lab:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 3.5v6.2L4.9 17a2.4 2.4 0 0 0 2.1 3.6h10a2.4 2.4 0 0 0 2.1-3.6L15 9.7V3.5"/><path d="M7.6 3.5h8.8M6.9 14h10.2"/></svg>',
+  rx:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5.5 4.5h4.2a2.9 2.9 0 0 1 0 5.8H5.5V4.5zM5.5 10.3v9M11.4 12.6l7.1 7.1M18.5 12.6l-7.1 7.1"/></svg>',
+  dx:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3.5 12h4l2-3.5 3 8 2.5-6 1.6 1.5h4"/></svg>',
+  imaging:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.6" y="3.6" width="16.8" height="16.8" rx="2.4"/><circle cx="12" cy="12" r="3.6"/></svg>',
+  visit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="3.6"/><path d="M4.8 20.2a7.2 7.2 0 0 1 14.4 0"/></svg>',
+  proc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 4.5c0 4 3.5 4.6 3.5 8.2A3.5 3.5 0 0 1 12 16.2a3.5 3.5 0 0 1-3.5-3.5C8.5 9.1 12 8.5 12 4.5z"/></svg>',
+  vac:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M15.5 3.8l4.7 4.7M17.8 6.1l-9.6 9.6-3.3.9.9-3.3 9.6-9.6zM10.4 9.5l2.2 2.2"/></svg>',
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.4"/><path d="M15.8 15.8L20.5 20.5"/></svg>',
+  inbox:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 13.5h4l1.5 3h6l1.5-3h4"/><path d="M3.5 13.5L6 5h12l2.5 8.5v5a2 2 0 0 1-2 2H5.5a2 2 0 0 1-2-2z"/></svg>',
+  cam:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6.5" width="18" height="13" rx="2.6"/><circle cx="12" cy="13" r="3.6"/><path d="M8.6 6.5l1.3-2.2h4.2l1.3 2.2"/></svg>',
+  pdf:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 3.5h7.5L19 9v11.5H6z"/><path d="M13.2 3.6V9H19"/></svg>',
+  lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4.8" y="10.5" width="14.4" height="9.7" rx="2.2"/><path d="M8.2 10.5V7.8a3.8 3.8 0 0 1 7.6 0v2.7"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+};
+const recIcon=k=>ICON[k]||ICON.visit;
+
+/* ---------------- vault ops ---------------- */
+async function vaultExists(){ return !!(await getOne('meta','vault')); }
+async function createVault(o){
+  const salt=rand(16), mk=await deriveMK(o.pin,salt);
+  const verify=await aeadSeal(mk,'medvault-verify','verify');
+  const code=newRecoveryCode(), rsalt=rand(16), rk=await recoveryKey(code,rsalt);
+  const mkWrapped=await aeadSeal(rk,mk,'mk-recovery');
+  const meta={id:'vault',v:1,kdf:'pbkdf2-sha256-600000',salt:b64e(salt),verify:b64e(verify),
+    recovery_salt:b64e(rsalt),mk_wrapped_recovery:b64e(mkWrapped),
+    name:o.name,name_ur:o.name_ur||'',blood:o.blood||'',city:o.city||'',cnic_masked:o.cnic_masked||'',
+    dob_year:o.dob_year||'',sex:o.sex||'',allergies:o.allergies||[],conditions:[],meds:[],contacts:[],
+    created_at:nowIso()};
+  await dbPut('meta',meta);
+  S.mk=mk; S.meta=meta;
+  await writeEmergency();
+  return code;
+}
+async function unlock(pin){
+  const m=await getOne('meta','vault'); if(!m) return false;
+  try{
+    const mk=await deriveMK(pin,b64d(m.salt));
+    const v=td.decode(await aeadOpen(mk,b64d(m.verify),'verify'));
+    if(v!=='medvault-verify') return false;
+    S.mk=mk; S.meta=m; return true;
+  }catch(e){ return false; }
+}
+async function recoverWithCode(code,newPin){
+  const m=await getOne('meta','vault'); if(!m||!m.mk_wrapped_recovery) return false;
+  try{
+    const rk=await recoveryKey(code,b64d(m.recovery_salt));
+    const mk=await aeadOpen(rk,b64d(m.mk_wrapped_recovery),'mk-recovery');
+    // re-derive under the new PIN
+    const salt=rand(16), mk2=await deriveMK(newPin,salt);
+    // Re-wrap every record DEK under the new MK
+    const keys=await getAll('record_keys');
+    for(const k of keys){
+      const dek=await unwrapDek(mk,b64d(k.wrapped_dek),k.record_id);
+      await dbPut('record_keys',{record_id:k.record_id,wrapped_dek:b64e(await wrapDek(mk2,dek,k.record_id))});
+    }
+    const code2=newRecoveryCode(), rsalt2=rand(16), rk2=await recoveryKey(code2,rsalt2);
+    m.salt=b64e(salt); m.verify=b64e(await aeadSeal(mk2,'medvault-verify','verify'));
+    m.recovery_salt=b64e(rsalt2); m.mk_wrapped_recovery=b64e(await aeadSeal(rk2,mk2,'mk-recovery'));
+    await dbPut('meta',m);
+    S.mk=mk2; S.meta=m;
+    return code2;
+  }catch(e){ return false; }
+}
+function lockNow(){ S.mk=null; renderGate(); }
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden && S.mk){ clearTimeout(S.lockTimer); S.lockTimer=setTimeout(()=>{S.mk=null;renderGate()},2*60*1000); }
+  else clearTimeout(S.lockTimer);
+});
+
+async function saveRecord(rec,payload,fileBlobs){
+  const dek=rand(32);
+  const cipher=await sealJson(dek,rec.id,payload);
+  await dbPut('records',{...rec,payload_cipher:b64e(cipher),created_at:rec.created_at||nowIso(),updated_at:nowIso()});
+  await dbPut('record_keys',{record_id:rec.id,wrapped_dek:b64e(await wrapDek(S.mk,dek,rec.id))});
+  for(const f of (fileBlobs||[])){
+    const fdek=rand(32);
+    const buf=new Uint8Array(await f.blob.arrayBuffer());
+    const sealed=await aeadSeal(fdek,buf,'file:'+f.id);
+    await dbPut('files',{id:f.id,record_id:rec.id,mime:f.blob.type||'application/octet-stream',size:f.blob.size,
+      blob:sealed.buffer,file_dek_wrapped:b64e(await aeadSeal(dek,fdek,'fdek:'+f.id)),created_at:nowIso()});
+  }
+}
+async function loadRecords(){
+  const rows=(await getAll('records')).filter(r=>!r.deleted_at);
+  rows.sort((a,b)=>a.record_date<b.record_date?1:a.record_date>b.record_date?-1:0);
+  const out=[];
+  for(const r of rows){
+    try{
+      const k=await getOne('record_keys',r.id);
+      const dek=await unwrapDek(S.mk,b64d(k.wrapped_dek),r.id);
+      out.push({...r,payload:await openJson(dek,r.id,b64d(r.payload_cipher)),_dek:dek});
+    }catch(e){ out.push({...r,payload:{title:'[decryption failed]'},_bad:true}); }
+  }
+  return out;
+}
+async function openFile(fileRow,dek){
+  const fdek=await aeadOpen(dek,b64d(fileRow.file_dek_wrapped),'fdek:'+fileRow.id);
+  const pt=await aeadOpen(fdek,new Uint8Array(fileRow.blob),'file:'+fileRow.id);
+  return new Blob([pt],{type:fileRow.mime});
+}
+
+/* emergency summary: sealed under a device key (NOT the PIN) so it opens locked.
+   In connected mode this moves to a revocable grant token (SPEC §10.4). */
+function deviceKey(){
+  let k=safeLS.get('mv.devkey');
+  if(!k){ k=b64e(rand(32)); safeLS.set('mv.devkey',k); }
+  return b64d(k);
+}
+async function writeEmergency(){
+  const m=S.meta; if(!m) return;
+  const payload={name:m.name,blood:m.blood,dob_year:m.dob_year,sex:m.sex,city:m.city,cnic_masked:m.cnic_masked,
+    allergies:m.allergies||[],conditions:m.conditions||[],meds:m.meds||[],contacts:m.contacts||[],updated:nowIso()};
+  safeLS.set('mv.emergency',b64e(await aeadSeal(deviceKey(),JSON.stringify(payload),'emergency')));
+}
+async function readEmergency(){
+  const raw=safeLS.get('mv.emergency'); if(!raw) return null;
+  try{ return JSON.parse(td.decode(await aeadOpen(deviceKey(),b64d(raw),'emergency'))); }catch(e){ return null; }
+}
+async function saveMeta(){ await dbPut('meta',S.meta); await writeEmergency(); }
+
+/* =====================================================================
+   UI
+   ===================================================================== */
+const ICON_SHARE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.6" y="3.6" width="7" height="7" rx="1.4"/><rect x="13.4" y="3.6" width="7" height="7" rx="1.4"/><rect x="3.6" y="13.4" width="7" height="7" rx="1.4"/><path d="M13.4 13.4h3v3h-3zM17.9 17.9h2.7v2.7h-2.7z"/></svg>';
+const TABS=[['vault','vault',ICON.vault],['timeline','timeline',ICON.tl],['trends','trend',ICON.trend],['access','share',ICON_SHARE],['settings','gear',ICON.gear]];
+function renderTabs(){
+  $('#tabs').innerHTML=TABS.map(([k,,ic])=>'<button class="'+(S.tab===k?'on':'')+'" onclick="go(\''+k+'\')">'+ic+'<span class="u">'+t(k)+'</span></button>').join('');
+}
+function go(route,arg){
+  S.route=route; if(['vault','timeline','trends','access','settings'].includes(route)) S.tab=route;
+  render(arg);
+  $('#screen').scrollTop=0; window.scrollTo(0,0);
+}
+function chrome(on){
+  $('#hdr').style.display=on?'flex':'none';
+  $('#tabs').style.display=on?'grid':'none';
+}
+async function render(arg){
+  renderTabs();
+  $('#langbtn').textContent=S.lang==='en'?'EN':'اردو';
+  $('#fablabel').textContent=t('add_record');
+  document.body.classList.toggle('ur',S.lang==='ur');
+  const R={vault:vVault,timeline:vTimeline,trends:vTrends,emergency:vEmergency,access:vAccess,settings:vSettings,add:vAdd,record:vRecord,grantnew:vGrantNew,grantshow:vGrantShow};
+  chrome(true);
+  $('#fab').style.display=(S.route==='vault'||S.route==='timeline')?'flex':'none';
+  $('#screen').innerHTML=await (R[S.route]||vVault)(arg);
+  afterRender(arg);
+}
+function toggleLang(){ S.lang=S.lang==='en'?'ur':'en'; safeLS.set('mv.lang',S.lang); render(); }
+
+/* ---------------- gate: enroll / unlock ---------------- */
+async function renderGate(){
+  chrome(false); $('#fab').style.display='none'; $('#screen').innerHTML='';
+  const exists=await vaultExists();
+  $('#gate').innerHTML='<div class="gate"><div class="gatecard" id="gatecard">'+(exists?gateUnlock():gateEnroll(1))+'</div></div>';
+  if(!exists) enrollWire(1);
+  else { wirePins('pin',4,tryUnlock); setTimeout(()=>{const i=$('#pin0');if(i)i.focus()},50); }
+}
+function pinInputs(idPrefix,n){
+  let h='<div class="pinrow">';
+  for(let i=0;i<n;i++) h+='<input id="'+idPrefix+i+'" inputmode="numeric" maxlength="1" autocomplete="off">';
+  return h+'</div>';
+}
+function wirePins(prefix,n,done){
+  for(let i=0;i<n;i++){
+    const el=document.getElementById(prefix+i);
+    el.addEventListener('input',()=>{
+      el.value=el.value.replace(/\D/g,'').slice(0,1);
+      if(el.value&&i<n-1) document.getElementById(prefix+(i+1)).focus();
+      const pin=[...Array(n)].map((_,j)=>document.getElementById(prefix+j).value).join('');
+      if(pin.length===n) done(pin);
+    });
+    el.addEventListener('keydown',e=>{ if(e.key==='Backspace'&&!el.value&&i>0) document.getElementById(prefix+(i-1)).focus(); });
+  }
+}
+function gateUnlock(msg){
+  return '<div class="wordmark" style="margin-bottom:4px">Med<span>Vault</span></div>'+
+  '<div class="lbl" style="margin-bottom:22px">'+esc(t('locked'))+' · AES-256 · THIS DEVICE</div>'+
+  '<h2 style="font-family:\'Playfair Display\',serif;font-size:21px;margin:0 0 16px" class="u">'+esc(t('enter_pin'))+'</h2>'+
+  (msg?'<div class="simnote red" style="margin-bottom:14px">'+ICON.alert+'<span>'+esc(msg)+'</span></div>':'')+
+  pinInputs('pin',4)+
+  '<div style="height:18px"></div>'+
+  '<button class="btn ghost" onclick="forgotPin()">'+esc(t('forgot'))+'</button>'+
+  '<div style="height:14px"></div><div class="tiny" style="text-align:center">Your PIN never leaves this device. It derives the key that opens your records.</div>'+
+  '<button class="btn ghost sm" style="margin:14px auto 0" onclick="emergencyFromLock()">🆘 Emergency card — no PIN</button>';
+}
+async function tryUnlock(pin){
+  const card=$('#gatecard');
+  card.style.opacity=.6;
+  const ok=await unlock(pin);
+  card.style.opacity=1;
+  if(ok){ $('#gate').innerHTML=''; go('vault'); if(sb()&&S.session) ensureProfile(); }
+  else { card.innerHTML=gateUnlock(t('wrong_pin')); setTimeout(()=>{const i=$('#pin0');if(i)i.focus()},50); wirePins('pin',4,tryUnlock); }
+}
+function forgotPin(){
+  $('#gatecard').innerHTML='<div class="lbl" style="margin-bottom:14px">PIN RECOVERY</div>'+
+  '<h2 style="font-family:\'Playfair Display\',serif;font-size:20px;margin:0 0 10px">Enter your recovery code</h2>'+
+  '<p class="tiny" style="margin:0 0 14px">The 16-character code shown when this vault was created (XXXX-XXXX-XXXX-XXXX). Without it, an encrypted vault cannot be opened — by anyone.</p>'+
+  '<div class="field"><input id="rcode" placeholder="XXXX-XXXX-XXXX-XXXX" style="text-transform:uppercase;font-family:\'IBM Plex Mono\',monospace"></div>'+
+  '<div class="field"><label>New 4-digit PIN</label><input id="rpin" inputmode="numeric" maxlength="4" placeholder="••••"></div>'+
+  '<button class="btn" onclick="doRecover()">Recover vault</button>'+
+  '<div style="height:10px"></div><button class="btn ghost" onclick="renderGate()">Back</button>';
+}
+async function doRecover(){
+  const code=($('#rcode').value||'').trim(), pin=($('#rpin').value||'').trim();
+  if(!/^\d{4}$/.test(pin)){ toast('New PIN must be 4 digits'); return; }
+  const res=await recoverWithCode(code,pin);
+  if(!res){ toast('That recovery code did not open the vault'); return; }
+  $('#gatecard').innerHTML='<div class="lbl" style="margin-bottom:14px">RECOVERED</div>'+
+  '<h2 style="font-family:\'Playfair Display\',serif;font-size:20px;margin:0 0 10px">New recovery code</h2>'+
+  '<p class="tiny" style="margin:0 0 12px">Your old code is now useless. Write this one down and keep it like a bank document:</p>'+
+  '<div class="codebox">'+esc(res)+'</div><div style="height:16px"></div>'+
+  '<button class="btn" onclick="$(\'#gate\').innerHTML=\'\';go(\'vault\')">I have written it down — open vault</button>';
+}
+async function emergencyFromLock(){
+  const e=await readEmergency();
+  $('#gatecard').innerHTML='<div class="lbl" style="color:var(--red);margin-bottom:12px">EMERGENCY CARD · NO LOGIN</div>'+
+    (e?emergencyBody(e,true):'<p class="tiny">No emergency details saved yet.</p>')+
+    '<div style="height:14px"></div><button class="btn ghost" onclick="renderGate()">Close</button>';
+}
+
+/* enroll — 3 steps */
+function gateEnroll(step,data){
+  const steps='<div class="steps">'+[1,2,3].map(i=>'<i class="'+(i<=step?'on':'')+'"></i>').join('')+'</div>';
+  if(step===1) return '<div class="wordmark" style="margin-bottom:4px">Med<span>Vault</span></div>'+
+    '<div class="lbl" style="margin-bottom:20px">CREATE YOUR VAULT · 1 OF 3</div>'+steps+
+    '<div class="field"><label>Full name</label><input id="e_name" placeholder="e.g. Gul Rahman Khan" autocomplete="name"></div>'+
+    '<div class="field"><label>Blood group</label><select id="e_blood"><option value="">Not sure</option><option>O+</option><option>O−</option><option>A+</option><option>A−</option><option>B+</option><option>B−</option><option>AB+</option><option>AB−</option></select></div>'+
+    '<div class="field"><label>Year of birth</label><input id="e_dob" inputmode="numeric" maxlength="4" placeholder="1968"></div>'+
+    '<div class="field"><label>City <span style="text-transform:none;letter-spacing:0">optional</span></label><input id="e_city" placeholder="Mingora, Swat"></div>'+
+    '<div class="field"><label>Allergies <span style="text-transform:none;letter-spacing:0">comma-separated, optional</span></label><input id="e_all" placeholder="Penicillin, Sulfa drugs"></div>'+
+    '<button class="btn" onclick="enrollNext(1)">Continue</button>'+
+    '<div style="height:12px"></div><div class="tiny">Everything stays on this device, encrypted. No account, no server — until you choose to connect one.</div>';
+  if(step===2) return '<div class="lbl" style="margin-bottom:20px">CHOOSE A PIN · 2 OF 3</div>'+steps+
+    '<h2 style="font-family:\'Playfair Display\',serif;font-size:20px;margin:0 0 8px">A 4-digit PIN seals your vault</h2>'+
+    '<p class="tiny" style="margin:0 0 18px">Your PIN mathematically derives the encryption key. It is never stored — not here, not anywhere.</p>'+
+    '<div class="lbl" style="margin-bottom:8px">ENTER PIN</div>'+pinInputs('ep',4)+
+    '<div style="height:14px"></div><div class="lbl" style="margin-bottom:8px">REPEAT PIN</div>'+pinInputs('ep2',4)+
+    '<div id="epmsg"></div><div style="height:18px"></div>'+
+    '<button class="btn" onclick="enrollNext(2)">Create encrypted vault</button>';
+  return '<div class="lbl" style="margin-bottom:20px">RECOVERY CODE · 3 OF 3</div>'+steps+
+    '<h2 style="font-family:\'Playfair Display\',serif;font-size:20px;margin:0 0 8px">Write this down. Once.</h2>'+
+    '<p class="tiny" style="margin:0 0 14px">If you forget your PIN, this code is the <b>only</b> way back in. We cannot reset it — that is what makes the vault yours alone. Keep it like a bank document.</p>'+
+    '<div class="codebox">'+esc(data.code)+'</div>'+
+    '<div style="height:16px"></div>'+
+    '<label style="display:flex;gap:9px;align-items:flex-start;font-size:12.5px;line-height:1.5;cursor:pointer"><input type="checkbox" id="e_ok" style="margin-top:2px"> I have written the code down somewhere safe, on paper.</label>'+
+    '<div style="height:16px"></div><button class="btn" onclick="enrollNext(3)">Open my vault</button>';
+}
+let ENROLL={};
+function enrollWire(step){
+  if(step===2){ wirePins('ep',4,()=>{}); wirePins('ep2',4,()=>{}); const f=$('#ep0'); if(f)f.focus(); }
+}
+async function enrollNext(step){
+  if(step===1){
+    const name=($('#e_name').value||'').trim();
+    if(!name){ $('#e_name').style.borderColor='var(--red)'; $('#e_name').focus(); return; }
+    ENROLL={name:name,blood:$('#e_blood').value,dob_year:($('#e_dob').value||'').trim(),city:($('#e_city').value||'').trim(),
+      allergies:($('#e_all').value||'').split(',').map(s=>s.trim()).filter(Boolean)};
+    $('#gatecard').innerHTML=gateEnroll(2); enrollWire(2); return;
+  }
+  if(step===2){
+    const p1=[0,1,2,3].map(i=>$('#ep'+i).value).join(''), p2=[0,1,2,3].map(i=>$('#ep2'+i).value).join('');
+    if(!/^\d{4}$/.test(p1)){ $('#epmsg').innerHTML='<div class="simnote red" style="margin-top:12px">'+ICON.alert+'<span>Enter all four digits.</span></div>'; return; }
+    if(p1!==p2){ $('#epmsg').innerHTML='<div class="simnote red" style="margin-top:12px">'+ICON.alert+'<span>PINs do not match.</span></div>'; return; }
+    $('#gatecard').style.opacity=.6;
+    const code=await createVault({...ENROLL,pin:p1});
+    $('#gatecard').style.opacity=1;
+    $('#gatecard').innerHTML=gateEnroll(3,{code:code}); return;
+  }
+  if(step===3){
+    if(!$('#e_ok').checked){ toast('Please confirm you wrote the recovery code down'); return; }
+    $('#gate').innerHTML=''; go('vault');
+    if(sb()&&S.session) ensureProfile();
+    toast('Vault created — everything you add is encrypted on this device');
+  }
+}
+
+/* ---------------- screens ---------------- */
+async function vVault(){
+  const m=S.meta, recs=await loadRecords();
+  const labs=recs.filter(r=>r.record_type==='lab').length;
+  const files=(await getAll('files')).length;
+  let h='<div class="sec"><div class="lbl">'+t('your_vault')+'</div>'+
+    '<h1 class="ttl u">'+esc(m.name)+'</h1>'+
+    '<p class="note">'+[m.dob_year?estAge(m.dob_year):null,m.sex||null,m.city||null].filter(Boolean).map(esc).join(' · ')+
+    (m.cnic_masked?' · <span class="mono" style="font-size:11px">'+esc(m.cnic_masked)+'</span>':'')+'</p></div>';
+  h+='<div class="pad"><div class="card"><div class="cardpad" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center">'+
+    '<div><div style="font-family:\'Playfair Display\',serif;font-size:24px;font-weight:700">'+recs.length+'</div><div class="tiny">'+t('records')+'</div></div>'+
+    '<div><div style="font-family:\'Playfair Display\',serif;font-size:24px;font-weight:700">'+labs+'</div><div class="tiny">lab results</div></div>'+
+    '<div><div style="font-family:\'Playfair Display\',serif;font-size:24px;font-weight:700">'+files+'</div><div class="tiny">attachments</div></div>'+
+    '</div></div>';
+  h+='<div style="height:12px"></div>'+(STORAGE.mode==='session'
+    ?'<div class="simnote">'+ICON.alert+'<span><b>Preview hosting — session only.</b> This host blocks browser storage, so your encrypted vault lasts until this tab closes. The encryption is real; persistence arrives with production hosting and the backend connect (in progress).</span></div>'
+    :'<div class="simnote teal">'+ICON.alert+'<span><b>Device mode.</b> Records are encrypted and stored in this browser. Clearing site data deletes them — the backend connect adds sync, sharing and backup.</span></div>');
+  h+='<div style="height:10px"></div><div class="card cardpad" style="display:flex;gap:10px;align-items:center">'+
+    '<div style="flex:1"><div class="lbl" style="color:var(--red)">'+t('emergency').toUpperCase()+'</div>'+
+    '<div class="tiny" style="margin-top:3px">'+esc(m.blood||'—')+' · opens without PIN</div></div>'+
+    '<button class="btn sm ghost" onclick="go(\'emergency\')">Open</button></div>';
+  if(canSync()) h+='<div style="height:10px"></div><div class="simnote teal">'+ICON.check+'<span><b>Connected & syncing</b> to your backend'+(S.lastSync?' · last sync '+S.lastSync.slice(11,16):'')+'. Records are encrypted before they leave this device.</span></div>';
+  else if(sb()&&!S.session) h+='<div style="height:10px"></div><div class="simnote">'+ICON.alert+'<span><b>Backend ready — not signed in.</b> Sign in (Settings) to turn on sync, backup and QR sharing.</span></div>';
+  if(S.syncBlocked) h+='<div style="height:10px"></div><div class="simnote red">'+ICON.alert+'<span>'+esc(S.syncBlocked)+'</span></div>';
+  if(recs.length){
+    h+='<div style="height:16px"></div><div class="lbl">RECENT</div><div style="height:9px"></div>'+recs.slice(0,4).map(recRow).join('');
+    h+='<button class="btn ghost" onclick="go(\'timeline\')">'+t('timeline')+' — '+recs.length+' '+t('records')+'</button>';
+  } else {
+    h+='<div class="empty">'+ICON.inbox+'<p class="u">'+t('no_records')+'</p><div style="height:14px"></div>'+
+       '<button class="btn sm" style="margin:0 auto" onclick="go(\'add\')">'+t('add_record')+'</button></div>';
+  }
+  return h+'<div style="height:16px"></div>';
+}
+function estAge(y){ const a=new Date().getFullYear()-parseInt(y,10); return isNaN(a)?'':a+' yrs'; }
+function recRow(r){
+  const p=r.payload||{};
+  return '<button class="rec" onclick="go(\'record\',\''+r.id+'\')">'+
+    '<div class="ic '+esc(r.record_type)+'">'+recIcon(r.record_type)+'</div>'+
+    '<div class="bd"><div class="t u">'+esc(p.title||typeName(r.record_type))+'</div>'+
+    '<div class="m">'+esc(typeName(r.record_type))+(p.clinician?' · '+esc(p.clinician):'')+(p.facility?' · '+esc(p.facility):'')+'</div></div>'+
+    '<div class="d">'+dShort(r.record_date)+'</div></button>';
+}
+const FILTERS=[['all','all'],['lab','labs'],['rx','meds'],['imaging','imaging'],['visit','consults'],['dx','other']];
+async function vTimeline(){
+  const recs=await loadRecords();
+  const q=S.q.trim().toLowerCase();
+  const list=recs.filter(r=>{
+    if(S.filter!=='all'){
+      if(S.filter==='visit'&&!['visit','proc'].includes(r.record_type)) return false;
+      if(S.filter==='dx'&&!['dx','vac'].includes(r.record_type)) return false;
+      if(['lab','rx','imaging'].includes(S.filter)&&r.record_type!==S.filter) return false;
+    }
+    if(!q) return true;
+    const p=r.payload||{};
+    return [p.title,p.clinician,p.facility,p.note,(p.meds||[]).map(m=>m.n).join(' '),(p.analytes||[]).map(a=>a.n).join(' ')].join(' ').toLowerCase().includes(q);
+  });
+  let h='<div class="sec"><div class="lbl">'+t('timeline').toUpperCase()+'</div><h1 class="ttl u">'+(S.lang==='ur'?'مکمل طبی ٹائم لائن':'Unified health timeline')+'</h1></div>';
+  h+='<div class="searchwrap">'+ICON.search+'<input id="q" placeholder="'+t('search')+'" value="'+esc(S.q)+'" oninput="onQ(this.value)"></div>';
+  h+='<div class="filters">'+FILTERS.map(([k,lk])=>'<button class="fchip'+(S.filter===k?' on':'')+'" onclick="S.filter=\''+k+'\';render()">'+t(lk)+'</button>').join('')+'</div>';
+  h+='<div class="pad" style="padding-top:8px">';
+  if(!list.length) h+='<div class="empty">'+ICON.inbox+'<p class="u">'+(recs.length?t('no_match'):t('no_records'))+'</p></div>';
+  else{
+    let year='';
+    for(const r of list){
+      const y=r.record_date.slice(0,4);
+      if(y!==year){year=y;h+='<div class="tlgroup">'+y+' · '+list.filter(x=>x.record_date.slice(0,4)===y).length+'</div>';}
+      h+=recRow(r);
+    }
+  }
+  return h+'</div>';
+}
+function onQ(v){ S.q=v; const sc=$('#screen').scrollTop; render().then(()=>{ $('#screen').scrollTop=sc; const i=$('#q'); if(i){i.focus();i.setSelectionRange(v.length,v.length);} }); }
+
+async function vRecord(id){
+  const recs=await loadRecords();
+  const r=recs.find(x=>x.id===id);
+  if(!r) return '<div class="empty">Record not found</div>';
+  const p=r.payload||{};
+  const files=(await getAll('files')).filter(f=>f.record_id===id);
+  let h='<div class="sec"><div class="lbl">'+esc(typeName(r.record_type)).toUpperCase()+' · '+dLong(r.record_date)+'</div>'+
+    '<h1 class="ttl u">'+esc(p.title||typeName(r.record_type))+'</h1></div><div class="pad">';
+  h+='<div class="card cardpad">';
+  if(p.clinician) h+='<div class="kv"><div class="k">Clinician</div><div class="v">'+esc(p.clinician)+'</div></div>';
+  if(p.facility) h+='<div class="kv"><div class="k">Facility</div><div class="v">'+esc(p.facility)+'</div></div>';
+  h+='<div class="kv"><div class="k">Stored</div><div class="v mono" style="font-size:11px">AES-256-GCM · this device</div></div></div>';
+  if(p.analytes&&p.analytes.length){
+    h+='<div style="height:10px"></div><div class="card cardpad"><div class="lbl" style="margin-bottom:8px">RESULTS</div><table class="vals"><tr><th>Test</th><th style="text-align:right">Value</th></tr>'+
+      p.analytes.map(a=>{
+        const f=flagAnalyte(a);
+        return '<tr class="'+(f?'hi':'')+'"><td>'+esc(a.n)+(a.range?'<div class="tiny">'+esc(a.range)+'</div>':'')+'</td><td class="n">'+esc(a.v)+' '+esc(a.u||'')+(f?' ▲':'')+'</td></tr>';
+      }).join('')+'</table></div>';
+  }
+  if(p.meds&&p.meds.length){
+    h+='<div style="height:10px"></div><div class="card"><div class="cardpad" style="padding-bottom:4px"><div class="lbl">MEDICINES</div></div>'+
+      p.meds.map(m=>'<div class="medrow"><div><b>'+esc(m.n)+'</b> '+esc(m.d||'')+'</div><div class="mono" style="font-size:11px">'+esc(m.f||'')+'</div></div>').join('')+'</div>';
+  }
+  if(p.note) h+='<div style="height:10px"></div><div class="card cardpad"><div class="lbl" style="margin-bottom:7px">NOTE</div><p class="note" style="margin:0">'+esc(p.note)+'</p></div>';
+  if(files.length){
+    h+='<div style="height:10px"></div><div class="lbl" style="padding:6px 2px">ATTACHMENTS · ENCRYPTED</div>';
+    for(const f of files){
+      h+='<button class="attach" onclick="viewFile(\''+f.id+'\',\''+r.id+'\')"><div class="ic">'+(f.mime.startsWith('image/')?ICON.cam:ICON.pdf)+'</div>'+
+        '<div style="flex:1"><div style="font-size:13px;font-weight:600">'+esc(f.mime.split('/')[1].toUpperCase())+' · '+(f.size/1024).toFixed(0)+' KB</div>'+
+        '<div class="tiny">Tap to decrypt and open</div></div></button>';
+    }
+  }
+  h+='<div style="height:14px"></div><div class="btnrow"><button class="btn ghost" onclick="go(\'timeline\')">Back</button>'+
+     '<button class="btn danger" onclick="delRecord(\''+r.id+'\')">Delete</button></div>';
+  return h+'</div><div style="height:16px"></div>';
+}
+function flagAnalyte(a){
+  const m=/^\s*([\d.]+)\s*[–-]\s*([\d.]+)/.exec(a.range||'');
+  const v=parseFloat(a.v);
+  if(!m||isNaN(v)) return false;
+  return v<parseFloat(m[1])||v>parseFloat(m[2]);
+}
+async function viewFile(fid,rid){
+  const f=await getOne('files',fid); const k=await getOne('record_keys',rid);
+  try{
+    const dek=await unwrapDek(S.mk,b64d(k.wrapped_dek),rid);
+    const blob=await openFile(f,dek);
+    const url=URL.createObjectURL(blob);
+    window.open(url,'_blank');
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+  }catch(e){ toast('Could not decrypt this file'); }
+}
+async function delRecord(id){
+  if(!confirm('Delete this record from your vault?')) return;
+  const r=await getOne('records',id); r.deleted_at=nowIso(); await dbPut('records',r);
+  go('timeline'); toast('Record deleted');
+}
+
+/* ---------------- add record ---------------- */
+let ADD={files:[]};
+async function vAdd(){
+  ADD={type:'lab',files:[],analytes:[],meds:[]};
+  const today=new Date().toISOString().slice(0,10);
+  return '<div class="sec"><div class="lbl">'+t('add_record').toUpperCase()+'</div><h1 class="ttl u">'+(S.lang==='ur'?'نیا ریکارڈ':'New record')+'</h1>'+
+  '<p class="note">Fill what you know — everything is encrypted the moment you save. Smart OCR pre-fill arrives with Phase 2.</p></div>'+
+  '<div class="pad">'+
+  '<div class="field"><label>Type</label><select id="a_type" onchange="addTypeChanged(this.value)">'+
+    Object.keys(TYPES).map(k=>'<option value="'+k+'">'+esc(TYPES[k].en)+'</option>').join('')+'</select></div>'+
+  '<div class="field"><label>Title</label><input id="a_title" placeholder="e.g. HbA1c + renal panel"></div>'+
+  '<div class="field"><label>Date</label><input id="a_date" type="date" value="'+today+'" max="'+today+'"></div>'+
+  '<div class="field"><label>Doctor / clinician</label><input id="a_dr" placeholder="Dr. …"></div>'+
+  '<div class="field"><label>Facility</label><input id="a_fac" placeholder="Hospital, clinic or lab"></div>'+
+  '<div id="a_dyn"></div>'+
+  '<div class="field"><label>Note</label><textarea id="a_note" rows="3" placeholder="Anything worth remembering"></textarea></div>'+
+  '<div class="lbl" style="margin-bottom:8px">ATTACH PHOTO OR PDF</div>'+
+  '<input type="file" id="a_file" accept="image/*,application/pdf" capture="environment" multiple style="display:none" onchange="addFiles(this.files)">'+
+  '<button class="attach" onclick="document.getElementById(\'a_file\').click()"><div class="ic">'+ICON.cam+'</div>'+
+    '<div style="flex:1"><div style="font-size:13px;font-weight:600">Photograph the paper</div><div class="tiny">Lab report, prescription, X-ray film — encrypted before it is stored</div></div></button>'+
+  '<div id="a_files"></div>'+
+  '<div style="height:16px"></div><div class="btnrow"><button class="btn ghost" onclick="go(\'vault\')">'+t('cancel')+'</button>'+
+  '<button class="btn" id="a_save" onclick="saveAdd()">'+t('save')+'</button></div>'+
+  '</div><div style="height:20px"></div>';
+}
+function addTypeChanged(v){ ADD.type=v; renderDyn(); }
+function renderDyn(){
+  const el=$('#a_dyn'); if(!el) return;
+  if(ADD.type==='lab'){
+    el.innerHTML='<div class="lbl" style="margin-bottom:8px">RESULTS</div><div id="a_ans">'+ADD.analytes.map((a,i)=>anRow(a,i)).join('')+'</div>'+
+    '<button class="btn ghost sm" onclick="ADD.analytes.push({n:\'\',v:\'\',u:\'\',range:\'\'});renderDyn()">+ Add result</button><div style="height:14px"></div>';
+  } else if(ADD.type==='rx'){
+    el.innerHTML='<div class="lbl" style="margin-bottom:8px">MEDICINES</div><div id="a_meds">'+ADD.meds.map((m,i)=>medRow(m,i)).join('')+'</div>'+
+    '<button class="btn ghost sm" onclick="ADD.meds.push({n:\'\',d:\'\',f:\'\'});renderDyn()">+ Add medicine</button><div style="height:14px"></div>';
+  } else el.innerHTML='';
+}
+function anRow(a,i){
+  return '<div style="display:grid;grid-template-columns:1.4fr .7fr .6fr 1fr;gap:6px;margin-bottom:7px">'+
+  '<input placeholder="Test (HbA1c)" value="'+esc(a.n)+'" oninput="ADD.analytes['+i+'].n=this.value" style="font:inherit;font-size:12.5px;padding:9px;border:1px solid var(--line);border-radius:9px">'+
+  '<input placeholder="6.5" value="'+esc(a.v)+'" oninput="ADD.analytes['+i+'].v=this.value" style="font:inherit;font-size:12.5px;padding:9px;border:1px solid var(--line);border-radius:9px">'+
+  '<input placeholder="%" value="'+esc(a.u)+'" oninput="ADD.analytes['+i+'].u=this.value" style="font:inherit;font-size:12.5px;padding:9px;border:1px solid var(--line);border-radius:9px">'+
+  '<input placeholder="4.0–7.0" value="'+esc(a.range)+'" oninput="ADD.analytes['+i+'].range=this.value" style="font:inherit;font-size:12.5px;padding:9px;border:1px solid var(--line);border-radius:9px"></div>';
+}
+function medRow(m,i){
+  return '<div style="display:grid;grid-template-columns:1.4fr .8fr .8fr;gap:6px;margin-bottom:7px">'+
+  '<input placeholder="Medicine" value="'+esc(m.n)+'" oninput="ADD.meds['+i+'].n=this.value" style="font:inherit;font-size:12.5px;padding:9px;border:1px solid var(--line);border-radius:9px">'+
+  '<input placeholder="500 mg" value="'+esc(m.d)+'" oninput="ADD.meds['+i+'].d=this.value" style="font:inherit;font-size:12.5px;padding:9px;border:1px solid var(--line);border-radius:9px">'+
+  '<input placeholder="1+0+1" value="'+esc(m.f)+'" oninput="ADD.meds['+i+'].f=this.value" style="font:inherit;font-size:12.5px;padding:9px;border:1px solid var(--line);border-radius:9px"></div>';
+}
+function addFiles(fl){
+  for(const f of fl){
+    if(f.size>10*1024*1024){ toast('Files over 10 MB are skipped in device mode'); continue; }
+    ADD.files.push({id:uuid(),blob:f});
+  }
+  $('#a_files').innerHTML=ADD.files.map((f,i)=>'<div class="attach" style="cursor:default"><div class="ic">'+(f.blob.type.startsWith('image/')?ICON.cam:ICON.pdf)+'</div>'+
+    '<div style="flex:1"><div style="font-size:12.5px;font-weight:600">'+esc(f.blob.name||'capture')+'</div><div class="tiny">'+(f.blob.size/1024).toFixed(0)+' KB — will be encrypted</div></div>'+
+    '<button class="iconbtn" onclick="ADD.files.splice('+i+',1);addFiles([])">'+ICON.x+'</button></div>').join('');
+}
+async function saveAdd(){
+  const title=($('#a_title').value||'').trim();
+  const date=$('#a_date').value;
+  if(!title){ $('#a_title').style.borderColor='var(--red)'; $('#a_title').focus(); return; }
+  if(!date){ toast('Pick the date on the document'); return; }
+  $('#a_save').disabled=true;
+  const payload={v:1,title:title,clinician:($('#a_dr').value||'').trim(),facility:($('#a_fac').value||'').trim(),
+    note:($('#a_note').value||'').trim(),
+    analytes:ADD.type==='lab'?ADD.analytes.filter(a=>a.n&&a.v):undefined,
+    meds:ADD.type==='rx'?ADD.meds.filter(m=>m.n):undefined};
+  await saveRecord({id:uuid(),record_type:ADD.type,record_date:date,source:'manual'},payload,ADD.files);
+  go('timeline'); S.filter='all';
+  toast('Encrypted and saved to your vault'+(ADD.files.length?' — '+ADD.files.length+' file(s) sealed':''));
+  if(canSync()) pushSync();
+}
+
+/* ---------------- trends ---------------- */
+async function vTrends(){
+  const recs=await loadRecords();
+  const series={};
+  for(const r of recs){
+    if(r.record_type!=='lab'||!r.payload.analytes) continue;
+    for(const a of r.payload.analytes){
+      const v=parseFloat(a.v); if(isNaN(v)||!a.n) continue;
+      const key=a.n.trim();
+      (series[key]=series[key]||{n:key,u:a.u||'',range:a.range||'',pts:[]}).pts.push([r.record_date,v]);
+    }
+  }
+  Object.values(series).forEach(s=>s.pts.sort((a,b)=>a[0]<b[0]?-1:1));
+  const keys=Object.keys(series).filter(k=>series[k].pts.length>=1).sort((a,b)=>series[b].pts.length-series[a].pts.length);
+  let h='<div class="sec"><div class="lbl">'+t('trends').toUpperCase()+'</div><h1 class="ttl u">'+(S.lang==='ur'?'لیب رجحانات':'Lab trends')+'</h1><p class="note u">'+t('trends_note')+'</p></div>';
+  if(!keys.length) return h+'<div class="empty">'+ICON.trend+'<p>Add lab results with numeric values and trends chart themselves here.</p></div>';
+  if(!S.analyte||!keys.includes(S.analyte)) S.analyte=keys[0];
+  const L=series[S.analyte];
+  h+='<div class="filters">'+keys.map(k=>'<button class="fchip'+(S.analyte===k?' on':'')+'" onclick="S.analyte=\''+esc(k).replace(/'/g,"\\'")+'\';render()">'+esc(k)+'</button>').join('')+'</div>';
+  const last=L.pts[L.pts.length-1];
+  h+='<div class="pad"><div class="card cardpad">'+
+    '<div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:6px"><div style="font-family:\'Playfair Display\',serif;font-size:32px;font-weight:700;line-height:1">'+last[1]+'</div>'+
+    '<div class="tiny" style="margin-bottom:4px">'+esc(L.u)+'</div><div style="flex:1"></div><div class="mono tiny" style="text-align:right">'+dShort(last[0])+'</div></div>'+
+    (L.pts.length>=2?chart(L):'<div class="tiny" style="padding:10px 0">One value so far — add another '+esc(L.n)+' result and the trend line appears.</div>')+
+    (L.range?'<div class="tiny" style="margin-top:7px">Reference '+esc(L.range)+' '+esc(L.u)+'</div>':'')+'</div>';
+  h+='<div style="height:10px"></div><div class="card cardpad"><table class="vals"><tr><th>Date</th><th style="text-align:right">Value</th></tr>'+
+    L.pts.slice().reverse().map(p=>'<tr><td>'+dLong(p[0])+'</td><td class="n">'+p[1]+' '+esc(L.u)+'</td></tr>').join('')+'</table></div></div>';
+  return h+'<div style="height:16px"></div>';
+}
+function chart(L){
+  const W=360,H=150,PL=34,PR=12,PT=12,PB=20;
+  const pts=L.pts, vals=pts.map(p=>p[1]);
+  let band=null;
+  const m=/^\s*([\d.]+)\s*[–-]\s*([\d.]+)/.exec(L.range||'');
+  if(m) band=[parseFloat(m[1]),parseFloat(m[2])];
+  const dmin=Math.min(...vals),dmax=Math.max(...vals);
+  const range=(dmax-dmin)||Math.max(1,dmax*.15);
+  let lo=dmin-range*.35, hi=dmax+range*.35;
+  if(band){ lo=Math.min(lo,band[0]-range*.2); hi=Math.max(hi,band[1]+range*.2); }
+  const X=i=>PL+(W-PL-PR)*(pts.length===1?.5:i/(pts.length-1));
+  const Y=v=>PT+(H-PT-PB)*(1-(v-lo)/(hi-lo));
+  let s='<svg class="chart" viewBox="0 0 '+W+' '+H+'">';
+  if(band){
+    const bT=Y(Math.min(band[1],hi)),bB=Y(Math.max(band[0],lo));
+    s+='<rect class="band" x="'+PL+'" y="'+bT.toFixed(1)+'" width="'+(W-PL-PR)+'" height="'+Math.max(0,bB-bT).toFixed(1)+'"/>';
+    s+='<line class="bandline" x1="'+PL+'" y1="'+bT.toFixed(1)+'" x2="'+(W-PR)+'" y2="'+bT.toFixed(1)+'"/>';
+    s+='<line class="bandline" x1="'+PL+'" y1="'+bB.toFixed(1)+'" x2="'+(W-PR)+'" y2="'+bB.toFixed(1)+'"/>';
+  }
+  [0,.5,1].forEach(f=>{const y=PT+(H-PT-PB)*f;s+='<line class="grid" x1="'+PL+'" y1="'+y+'" x2="'+(W-PR)+'" y2="'+y+'"/>'});
+  s+='<text class="ax" x="'+(PL-6)+'" y="'+(PT+4)+'" text-anchor="end">'+hi.toFixed(1)+'</text>';
+  s+='<text class="ax" x="'+(PL-6)+'" y="'+(H-PB+3)+'" text-anchor="end">'+lo.toFixed(1)+'</text>';
+  s+='<path class="ln" d="'+pts.map((p,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(p[1]).toFixed(1)).join(' ')+'"/>';
+  pts.forEach((p,i)=>{
+    const bad=band&&(p[1]<band[0]||p[1]>band[1]);
+    s+='<circle class="pt'+(bad?' hi':'')+'" cx="'+X(i).toFixed(1)+'" cy="'+Y(p[1]).toFixed(1)+'" r="'+(i===pts.length-1?3.6:2.8)+'"/>';
+  });
+  const yrs=[...new Set(pts.map(p=>p[0].slice(0,4)))];
+  yrs.forEach(y=>{const i=pts.findIndex(p=>p[0].slice(0,4)===y);s+='<text class="ax" x="'+X(i).toFixed(1)+'" y="'+(H-4)+'" text-anchor="middle">'+y+'</text>'});
+  return s+'</svg>';
+}
+
+/* ---------------- emergency ---------------- */
+function emergencyBody(e,compact){
+  let h='<div class="ecard"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">'+
+    '<div><div class="lbl" style="color:var(--red)">BLOOD GROUP</div><div class="bigblood">'+esc(e.blood||'—')+'</div></div>'+
+    '<div style="text-align:right"><div style="font-weight:700;font-size:15px">'+esc(e.name||'')+'</div>'+
+    '<div class="tiny">'+[e.dob_year?estAge(e.dob_year):null,e.sex,e.city].filter(Boolean).map(esc).join(' · ')+'</div>'+
+    (e.cnic_masked?'<div class="mono tiny">'+esc(e.cnic_masked)+'</div>':'')+'</div></div></div>';
+  h+='<div style="height:10px"></div><div class="card cardpad"><div class="lbl" style="color:var(--red);margin-bottom:6px">ALLERGIES</div>'+
+    ((e.allergies&&e.allergies.length)?e.allergies.map(a=>'<div style="font-size:13.5px;font-weight:600;line-height:1.6">• '+esc(a)+'</div>').join(''):'<div class="tiny">None recorded</div>')+'</div>';
+  if(e.conditions&&e.conditions.length) h+='<div style="height:10px"></div><div class="card cardpad"><div class="lbl" style="margin-bottom:6px">CONDITIONS</div>'+e.conditions.map(c=>'<div style="font-size:12.5px;line-height:1.7">• '+esc(c)+'</div>').join('')+'</div>';
+  if(e.meds&&e.meds.length) h+='<div style="height:10px"></div><div class="card"><div class="cardpad" style="padding-bottom:4px"><div class="lbl">CURRENT MEDICINES</div></div>'+e.meds.map(m=>'<div class="medrow"><div><b>'+esc(m.n)+'</b> '+esc(m.d||'')+'</div><div class="mono" style="font-size:11px">'+esc(m.f||'')+'</div></div>').join('')+'</div>';
+  if(e.contacts&&e.contacts.length) h+='<div style="height:10px"></div><div class="card cardpad"><div class="lbl" style="margin-bottom:4px">EMERGENCY CONTACTS</div>'+e.contacts.map(c=>'<div class="kv"><div class="k">'+esc(c.n)+'</div><div class="v mono" style="font-size:12px">'+esc(c.p)+'</div></div>').join('')+'</div>';
+  if(!compact) h+='<div style="height:10px"></div><div class="qrbox" id="eqr"></div><div style="height:8px"></div><div class="tiny" style="text-align:center">QR carries this summary as plain text for a paramedic\'s scanner.</div>';
+  return h;
+}
+async function vEmergency(){
+  const e=await readEmergency();
+  let h='<div class="sec"><div class="lbl">EMERGENCY</div><h1 class="ttl u">'+(S.lang==='ur'?'ایمرجنسی ہیلتھ کارڈ':'Emergency health card')+'</h1><p class="note u">'+t('emergency_note')+'</p></div><div class="pad">';
+  if(!e) return h+'<div class="empty">No emergency data yet — fill it in below.</div></div>';
+  h+=emergencyBody(e,false);
+  h+='<div style="height:14px"></div><div class="lbl" style="margin-bottom:8px">EDIT</div>';
+  h+='<div class="field"><label>Conditions <span style="text-transform:none;letter-spacing:0">one per line</span></label><textarea id="em_cond" rows="3">'+esc((S.meta.conditions||[]).join('\n'))+'</textarea></div>';
+  h+='<div class="field"><label>Medicines <span style="text-transform:none;letter-spacing:0">name | dose | schedule, one per line</span></label><textarea id="em_meds" rows="3">'+esc((S.meta.meds||[]).map(m=>[m.n,m.d,m.f].filter(Boolean).join(' | ')).join('\n'))+'</textarea></div>';
+  h+='<div class="field"><label>Allergies <span style="text-transform:none;letter-spacing:0">comma separated</span></label><input id="em_all" value="'+esc((S.meta.allergies||[]).join(', '))+'"></div>';
+  h+='<div class="field"><label>Contacts <span style="text-transform:none;letter-spacing:0">name | phone, one per line</span></label><textarea id="em_ct" rows="2">'+esc((S.meta.contacts||[]).map(c=>c.n+' | '+c.p).join('\n'))+'</textarea></div>';
+  h+='<button class="btn" onclick="saveEmergency()">Update emergency card</button>';
+  return h+'</div><div style="height:20px"></div>';
+}
+async function saveEmergency(){
+  const m=S.meta;
+  m.conditions=($('#em_cond').value||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  m.meds=($('#em_meds').value||'').split('\n').map(s=>s.trim()).filter(Boolean).map(l=>{const p=l.split('|').map(x=>x.trim());return {n:p[0]||'',d:p[1]||'',f:p[2]||''}});
+  m.allergies=($('#em_all').value||'').split(',').map(s=>s.trim()).filter(Boolean);
+  m.contacts=($('#em_ct').value||'').split('\n').map(s=>s.trim()).filter(Boolean).map(l=>{const p=l.split('|').map(x=>x.trim());return {n:p[0]||'',p:p[1]||''}});
+  await saveMeta(); render(); toast('Emergency card updated — reachable without your PIN');
+}
+
+/* ---------------- settings ---------------- */
+async function vSettings(){
+  const m=S.meta;
+  const recs=(await getAll('records')).filter(r=>!r.deleted_at).length;
+  let h='<div class="sec"><div class="lbl">SETTINGS</div><h1 class="ttl u">'+(S.lang==='ur'?'ترتیبات':'Settings')+'</h1></div><div class="pad">';
+  h+=accountCard();
+  h+='<div style="height:10px"></div><div class="card cardpad"><div class="lbl" style="margin-bottom:8px">PROFILE</div>'+
+    '<div class="field"><label>Name</label><input id="s_name" value="'+esc(m.name)+'"></div>'+
+    '<div class="field"><label>Blood group</label><input id="s_blood" value="'+esc(m.blood||'')+'"></div>'+
+    '<div class="field"><label>City</label><input id="s_city" value="'+esc(m.city||'')+'"></div>'+
+    '<div class="field"><label>CNIC (masked, optional)</label><input id="s_cnic" value="'+esc(m.cnic_masked||'')+'" placeholder="15302-•••••••-3"></div>'+
+    '<button class="btn sm" onclick="saveProfile()">Save profile</button></div>';
+  h+='<div style="height:10px"></div><div class="card cardpad"><div class="lbl" style="margin-bottom:8px">VAULT</div>'+
+    '<div class="kv"><div class="k">Records</div><div class="v mono">'+recs+'</div></div>'+
+    '<div class="kv"><div class="k">Encryption</div><div class="v mono" style="font-size:11px">AES-256-GCM · PBKDF2 600k</div></div>'+
+    '<div class="kv"><div class="k">Created</div><div class="v mono" style="font-size:11px">'+esc((m.created_at||'').slice(0,10))+'</div></div>'+
+    '<div style="height:8px"></div><div class="btnrow">'+
+    '<button class="btn ghost sm" onclick="loadSample()">Load sample data</button>'+
+    '<button class="btn danger sm" onclick="wipeVault()">Delete vault</button></div>'+
+    '<div style="height:8px"></div><div class="tiny">Sample data is clearly labelled and helps you evaluate screens. Delete removes everything on this device permanently.</div></div>';
+  h+='<div style="height:10px"></div><div class="tiny" style="text-align:center">MedVault Web v0.1.0 · device mode · Mate Technologies</div>';
+  return h+'</div><div style="height:20px"></div>';
+}
+function accountCard(){
+  let h='<div class="card cardpad"><div class="lbl" style="margin-bottom:8px">ACCOUNT & BACKEND</div>';
+  h+='<div class="kv"><div class="k">Backend</div><div class="v"><span class="chip">'+(sb()?'CONNECTED PROJECT':'NOT CONFIGURED')+'</span></div></div>';
+  h+='<div class="kv"><div class="k">Local storage</div><div class="v">'+(STORAGE.mode==='session'?'Session only — host blocks storage':'This device · encrypted')+'</div></div>';
+  if(!sb()){ return h+'</div>'; }
+  if(S.session){
+    h+='<div class="kv"><div class="k">Signed in</div><div class="v">'+esc(S.session.user.email||'')+'</div></div>';
+    h+='<div class="kv"><div class="k">Sync</div><div class="v">'+(S.syncBlocked?'<span class="chip bad">PAUSED</span>':(S.lastSync?'Last '+S.lastSync.slice(11,19):'Ready'))+'</div></div>';
+    if(S.syncMsg) h+='<div class="tiny" style="color:var(--amber)">'+esc(S.syncMsg)+'</div>';
+    if(S.syncBlocked) h+='<div style="height:8px"></div><div class="simnote red">'+ICON.alert+'<span>'+esc(S.syncBlocked)+'</span></div>';
+    h+='<div style="height:10px"></div><div class="btnrow"><button class="btn sm ghost" onclick="syncNow()">Sync now</button>'+
+       '<button class="btn sm danger" onclick="signOutSb()">Sign out</button></div>';
+  } else {
+    h+='<div style="height:8px"></div><div class="tiny" style="margin-bottom:10px">Sign in to turn on backup, cross-device access and QR consent sharing. We email you a sign-in link — no password.</div>';
+    h+='<div class="field"><label>Email</label><input id="au_email" type="email" placeholder="you@example.com" autocomplete="email"></div>';
+    h+='<div id="au_step2" style="display:none"><div class="field"><label>Got a 6-digit code instead? Enter it</label><input id="au_code" inputmode="numeric" maxlength="8" placeholder="123456"></div></div>';
+    h+='<div id="au_msg"></div>';
+    h+='<div class="btnrow"><button class="btn sm" id="au_send" onclick="uiSendOtp()">Email me a sign-in link</button>'+
+       '<button class="btn sm" id="au_verify" style="display:none" onclick="uiVerifyOtp()">Verify & sign in</button></div>';
+  }
+  return h+'</div>';
+}
+async function uiSendOtp(){
+  const em=($('#au_email').value||'').trim();
+  if(!/.+@.+\..+/.test(em)){ $('#au_msg').innerHTML='<div class="simnote red" style="margin:8px 0">'+ICON.alert+'<span>Enter a valid email.</span></div>'; return; }
+  $('#au_send').disabled=true;
+  const r=await sendOtp(em);
+  $('#au_send').disabled=false;
+  if(r.error){ $('#au_msg').innerHTML='<div class="simnote red" style="margin:8px 0">'+ICON.alert+'<span>'+esc(r.error)+'</span></div>'; return; }
+  $('#au_step2').style.display='block'; $('#au_verify').style.display='flex'; $('#au_send').textContent='Resend email';
+  $('#au_msg').innerHTML='<div class="simnote teal" style="margin:8px 0">'+ICON.check+'<span>Email sent to '+esc(em)+' — can take a minute; check spam. <b>Tap the link in it on this device</b> and you return here signed in. If your email shows a 6-digit code instead, type it below. (Free tier sends only a few emails per hour.)</span></div>';
+  $('#au_code').focus();
+}
+async function uiVerifyOtp(){
+  const em=($('#au_email').value||'').trim(), code=($('#au_code').value||'').trim();
+  $('#au_verify').disabled=true;
+  const r=await verifyOtpCode(em,code);
+  $('#au_verify').disabled=false;
+  if(r.error){ $('#au_msg').innerHTML='<div class="simnote red" style="margin:8px 0">'+ICON.alert+'<span>'+esc(r.error)+'</span></div>'; return; }
+  toast('Signed in — backup and sharing are on');
+  render();
+}
+async function saveProfile(){
+  S.meta.name=$('#s_name').value.trim()||S.meta.name;
+  S.meta.blood=$('#s_blood').value.trim();
+  S.meta.city=$('#s_city').value.trim();
+  S.meta.cnic_masked=$('#s_cnic').value.trim();
+  await saveMeta(); toast('Profile saved'); render();
+}
+async function wipeVault(){
+  if(!confirm('Delete the entire vault from this device? This cannot be undone.')) return;
+  if(!confirm('Really delete? Records are unrecoverable without a backup.')) return;
+  try{ const d=await idb(); d.close(); _db=null;
+    await new Promise(res=>{const r=indexedDB.deleteDatabase(DB_NAME);r.onsuccess=res;r.onerror=res;r.onblocked=res;});
+  }catch(e){ Object.values(MEM).forEach(m=>m.clear()); }
+  safeLS.del('mv.emergency');
+  S.mk=null;S.meta=null;
+  location.reload();
+}
+async function loadSample(){
+  const mk=(type,date,payload)=>saveRecord({id:uuid(),record_type:type,record_date:date,source:'manual'},{...payload,title:'[SAMPLE] '+payload.title});
+  await mk('lab','2026-07-12',{v:1,title:'HbA1c + renal panel',clinician:'Dr. Naveed Akhtar',facility:'Chughtai Lab, Mingora',
+    analytes:[{n:'HbA1c',v:'6.5',u:'%',range:'4.0–7.0'},{n:'Creatinine',v:'1.35',u:'mg/dL',range:'0.7–1.3'},{n:'eGFR',v:'52',u:'mL/min',range:'60–120'}],
+    note:'Sample record for evaluation — delete anytime.'});
+  await mk('lab','2026-03-04',{v:1,title:'HbA1c, lipids',clinician:'Dr. Naveed Akhtar',facility:'Excel Labs, Mingora',
+    analytes:[{n:'HbA1c',v:'6.6',u:'%',range:'4.0–7.0'},{n:'LDL cholesterol',v:'71',u:'mg/dL',range:'0–70'},{n:'Creatinine',v:'1.31',u:'mg/dL',range:'0.7–1.3'}]});
+  await mk('lab','2025-08-21',{v:1,title:'HbA1c, CBC',facility:'Chughtai Lab, Mingora',
+    analytes:[{n:'HbA1c',v:'6.8',u:'%',range:'4.0–7.0'},{n:'Creatinine',v:'1.28',u:'mg/dL',range:'0.7–1.3'},{n:'Haemoglobin',v:'11.9',u:'g/dL',range:'13.0–17.0'}]});
+  await mk('rx','2026-06-30',{v:1,title:'Prescription — cardiac + diabetes',clinician:'Dr. Shahid Ayub',facility:'Saidu Teaching Hospital, Swat',
+    meds:[{n:'Metformin',d:'1000 mg',f:'1+0+1'},{n:'Ramipril',d:'5 mg',f:'1+0+0'},{n:'Atorvastatin',d:'40 mg',f:'0+0+1'}]});
+  await mk('visit','2026-06-30',{v:1,title:'Cardiology follow-up',clinician:'Dr. Shahid Ayub',facility:'Saidu Teaching Hospital, Swat',
+    note:'Stable on current therapy. Repeat echo in 12 months.'});
+  toast('Sample records added — labelled [SAMPLE]');
+  go('timeline');
+}
+
+/* ---------------- access: consent grants + audit (connected) ---------------- */
+const SCOPE_TYPES={full:['lab','rx','dx','imaging','visit','proc','vac'],labs:['lab'],imaging:['imaging']};
+function fmtLeft(ms){ if(ms<=0) return '00:00';
+  const sec=Math.floor(ms/1000),h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),ss=sec%60,P=n=>String(n).padStart(2,'0');
+  return h>0? h+'h '+P(m)+'m' : P(m)+':'+P(ss); }
+const gStatus=g=> g.revoked_at?'revoked':(Date.now()>=Date.parse(g.expires_at)?'expired':'active');
+
+async function vAccess(){
+  let h='<div class="sec"><div class="lbl">'+t('access').toUpperCase()+'</div><h1 class="ttl u">'+(S.lang==='ur'?'آپ کا والٹ کون دیکھ سکتا ہے':'Who can see your vault')+'</h1>'+
+    '<p class="note u">'+(S.lang==='ur'?'محدود وقت، قابلِ منسوخ، اور مکمل ریکارڈ کے ساتھ۔':'Time-limited, revocable, and logged. Nothing is shared by default.')+'</p></div><div class="pad">';
+  if(!sb()) return h+'<div class="card cardpad tiny">No backend configured.</div></div>';
+  if(!S.session) return h+'<div class="card cardpad"><div class="lbl" style="margin-bottom:7px">SIGN IN FIRST</div>'+
+    '<p class="note" style="margin:0 0 12px">Consent tokens must outlive this phone — the server enforces expiry and revocation. Sign in to enable sharing.</p>'+
+    '<button class="btn" onclick="go(\'settings\')">Go to sign-in</button></div></div>';
+  if(S.syncBlocked) return h+'<div class="simnote red">'+ICON.alert+'<span>'+esc(S.syncBlocked)+'</span></div></div>';
+  h+='<button class="btn" onclick="go(\'grantnew\')">Grant new access</button>';
+  const c=sb();
+  const {data:gs,error}=await c.from('grants').select('*').eq('profile_id',S.profileId).order('created_at',{ascending:false}).limit(20);
+  if(error) h+='<div class="tiny" style="margin-top:10px;color:var(--amber)">'+esc(error.message)+'</div>';
+  const act=(gs||[]).filter(g=>gStatus(g)==='active'), past=(gs||[]).filter(g=>gStatus(g)!=='active');
+  h+='<div class="lbl" style="margin:16px 0 8px">ACTIVE · '+act.length+'</div>';
+  if(!act.length) h+='<div class="card cardpad tiny">No one currently has access.</div>';
+  for(const g of act){
+    const left=Date.parse(g.expires_at)-Date.now();
+    h+='<div class="card cardpad" style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;gap:10px">'+
+      '<div><div style="font-weight:600;font-size:13.5px">'+esc(g.grantee_name||'Open QR — first to scan')+'</div>'+
+      '<div class="tiny">'+esc(g.scope)+' · '+esc(g.token_display)+'</div></div>'+
+      '<div style="text-align:right"><div class="mono" data-cd="'+Date.parse(g.expires_at)+'" style="font-weight:600;color:var(--teal-deep)">'+fmtLeft(left)+'</div>'+
+      '<div class="tiny" style="font-size:9px">EXPIRES IN</div></div></div>'+
+      '<div style="height:9px"></div><div class="btnrow">'+
+      '<button class="btn sm ghost" onclick="go(\'grantshow\',\''+g.id+'\')">Show QR</button>'+
+      '<button class="btn sm danger" onclick="revokeGrant(\''+g.id+'\')">Revoke</button></div></div>';
+  }
+  if(past.length){
+    h+='<div class="lbl" style="margin:16px 0 8px">PAST</div>';
+    for(const g of past.slice(0,6)) h+='<div class="card cardpad" style="margin-bottom:8px;opacity:.65"><div style="display:flex;justify-content:space-between;gap:8px"><div style="font-size:12.5px;font-weight:600">'+esc(g.grantee_name||'Open QR')+'<div class="tiny">'+esc(g.scope)+' · '+esc(g.token_display)+'</div></div><span class="chip '+(g.revoked_at?'bad':'mute')+'">'+(g.revoked_at?'REVOKED':'EXPIRED')+'</span></div></div>';
+  }
+  h+='<div class="lbl" style="margin:16px 0 8px">ACCESS LOG</div><div class="card cardpad" id="auditbox">'+(await auditHtml())+'</div>';
+  h+='<div style="height:8px"></div><div class="tiny">Every entry is hash-chained server-side — history cannot be rewritten quietly.</div>';
+  return h+'</div><div style="height:16px"></div>';
+}
+async function auditHtml(){
+  const c=sb(); if(!c||!S.profileId) return '<div class="tiny">—</div>';
+  const {data:log}=await c.from('audit_log').select('seq,actor_name,action,detail,entry_hash,created_at').eq('profile_id',S.profileId).order('seq',{ascending:false}).limit(30);
+  if(!log||!log.length) return '<div class="tiny">Nothing yet — the first entry appears when you grant access or sync a record.</div>';
+  return log.map(l=>'<div style="display:flex;gap:9px;padding:9px 0;border-top:1px solid var(--line2);font-size:12px" class="lg1">'+
+    '<div class="mono" style="font-size:9px;color:var(--faint);width:72px;flex:0 0 auto">'+esc((l.created_at||'').slice(0,10))+'<br>'+esc((l.created_at||'').slice(11,16))+'</div>'+
+    '<div style="min-width:0"><b>'+esc(l.action)+'</b> · '+esc(l.actor_name)+'<div class="tiny">'+esc(l.detail)+'</div>'+
+    '<div class="mono" style="font-size:8.5px;color:var(--faint);word-break:break-all">'+esc((l.entry_hash||'').slice(0,20))+'…</div></div></div>').join('');
+}
+async function vGrantNew(){
+  if(!canSync()) return '<div class="empty">Sign in first.</div>';
+  return '<div class="sec"><div class="lbl">CONSENT</div><h1 class="ttl">Grant new access</h1>'+
+  '<p class="note">Scoped, time-limited, revocable. Your records sync first so the doctor sees the full picture.</p></div><div class="pad">'+
+  '<div class="field"><label>Doctor / recipient (leave empty for an open QR)</label><input id="g_who" placeholder="Dr. …"></div>'+
+  '<div class="field"><label>What they can see</label><select id="g_scope"><option value="full">Full vault</option><option value="labs">Labs only</option><option value="imaging">Imaging only</option></select></div>'+
+  '<div class="field"><label>For how long</label><select id="g_dur"><option value="15">15 minutes</option><option value="60" selected>1 hour</option><option value="1440">24 hours</option><option value="10080">7 days</option></select></div>'+
+  '<div id="g_msg"></div>'+
+  '<div class="btnrow"><button class="btn ghost" onclick="go(\'access\')">Cancel</button>'+
+  '<button class="btn" id="g_go" onclick="mintGrant()">Generate QR</button></div></div>';
+}
+async function mintGrant(){
+  const btn=$('#g_go'); btn.disabled=true;
+  $('#g_msg').innerHTML='<div class="tiny" style="margin-bottom:10px">Syncing records…</div>';
+  try{
+    await pushSync();
+    const c=sb();
+    const who=($('#g_who').value||'').trim()||null, scope=$('#g_scope').value, mins=+$('#g_dur').value;
+    const G=rand(32), display=newDisplayToken();
+    const authHash=await grantAuthHash(G);
+    const ins=await c.from('grants').insert({profile_id:S.profileId,token_display:display,token_hash:authHash,
+      scope:scope,grantee_name:who,expires_at:new Date(Date.now()+mins*60000).toISOString()}).select().single();
+    if(ins.error) throw new Error(ins.error.message);
+    const grant=ins.data;
+    const recs=await loadRecords();
+    const inScope=recs.filter(r=>SCOPE_TYPES[scope].includes(r.record_type)&&r._dek);
+    const rows=[];
+    for(const r of inScope) rows.push({grant_id:grant.id,record_id:r.id,wrapped_dek:pgHex(await wrapDekForGrant(G,r._dek,r.id))});
+    if(rows.length){ const gk=await c.from('grant_keys').insert(rows); if(gk.error) throw new Error(gk.error.message); }
+    await auditRpc('granted',(scope==='full'?'Full vault':scope)+' · '+(mins>=1440?(mins/1440)+' day(s)':mins+' min')+(who?' · '+who:''),grant.id);
+    S._lastG={id:grant.id,G:b64u(G)};
+    go('grantshow',grant.id);
+  }catch(e){
+    $('#g_msg').innerHTML='<div class="simnote red" style="margin-bottom:10px">'+ICON.alert+'<span>'+esc(e.message||String(e))+'</span></div>';
+    btn.disabled=false;
+  }
+}
+async function vGrantShow(gid){
+  const c=sb();
+  const {data:g}=await c.from('grants').select('*').eq('id',gid).single();
+  if(!g) return '<div class="empty">Grant not found.</div>';
+  const hasG=S._lastG&&S._lastG.id===gid;
+  const url=hasG? BACKEND.gatewayUrl+'#g='+S._lastG.G : null;
+  let h='<div class="sec"><div class="lbl">TIME-LIMITED ACCESS</div><h1 class="ttl">Show this to '+esc(g.grantee_name||'the clinician')+'</h1></div><div class="pad">';
+  if(url) h+='<div class="qrbox" id="gqr"></div><div style="height:8px"></div><div class="tiny" style="text-align:center;word-break:break-all">'+esc(url)+'</div>';
+  else h+='<div class="simnote">'+ICON.alert+'<span>The QR secret exists only at mint time (zero-knowledge). This grant\'s QR was shown once — revoke it and mint a new one if needed.</span></div>';
+  h+='<div style="height:12px"></div><div class="card cardpad">'+
+    '<div class="kv"><div class="k">Token</div><div class="v mono">'+esc(g.token_display)+'</div></div>'+
+    '<div class="kv"><div class="k">Scope</div><div class="v">'+esc(g.scope)+'</div></div>'+
+    '<div class="kv"><div class="k">Expires in</div><div class="v mono" data-cd="'+Date.parse(g.expires_at)+'">'+fmtLeft(Date.parse(g.expires_at)-Date.now())+'</div></div></div>'+
+    '<div style="height:12px"></div><div class="btnrow"><button class="btn ghost danger" onclick="revokeGrant(\''+g.id+'\')">Revoke</button>'+
+    '<button class="btn" onclick="go(\'access\')">Done</button></div></div>';
+  setTimeout(()=>{ if(url){ try{ const box=$('#gqr'); const cv=document.createElement('canvas'); box.innerHTML=''; box.appendChild(cv);
+    new QRious({element:cv,value:url,size:440,level:'M',padding:12,foreground:'#0b0f10',background:'#ffffff'});
+    cv.style.width='200px'; cv.style.height='200px'; }catch(e){} } },30);
+  return h;
+}
+async function revokeGrant(gid){
+  const c=sb();
+  const up=await c.from('grants').update({revoked_at:new Date().toISOString()}).eq('id',gid);
+  if(up.error){ toast('Revoke failed: '+up.error.message); return; }
+  await auditRpc('revoked','Access revoked by patient before expiry',gid);
+  toast('Access revoked — the doctor is locked out within seconds');
+  go('access');
+}
+
+/* ---------------- post-render hooks ---------------- */
+function afterRender(){
+  if(S.route==='add') renderDyn();
+  if(S.route==='emergency'){
+    readEmergency().then(e=>{
+      const box=document.getElementById('eqr');
+      if(!box||!e) return;
+      try{
+        const c=document.createElement('canvas'); box.innerHTML=''; box.appendChild(c);
+        const text='MEDVAULT EMERGENCY\n'+e.name+' · '+(e.blood||'?')+'\nAllergies: '+(e.allergies||[]).join('; ')+'\nConditions: '+(e.conditions||[]).join('; ')+'\nMeds: '+(e.meds||[]).map(m=>m.n+' '+(m.d||'')).join('; ')+'\nContact: '+((e.contacts||[])[0]?e.contacts[0].n+' '+e.contacts[0].p:'—');
+        new QRious({element:c,value:text.slice(0,900),size:400,level:'M',padding:10,foreground:'#0b0f10',background:'#ffffff'});
+        c.style.width='200px';c.style.height='200px';
+      }catch(err){ box.innerHTML='<div class="tiny">QR unavailable offline</div>'; }
+    });
+  }
+}
+
+/* ---------------- boot ---------------- */
+function bootFail(err){
+  const el=document.getElementById('gate');
+  if(el) el.innerHTML='<div style="padding:24px;font-family:monospace;font-size:12px;color:#b42318;white-space:pre-wrap">BOOT ERROR\n'+String(err&&err.stack||err)+'</div>';
+}
+window.addEventListener('error',e=>bootFail(e.error||e.message));
+window.addEventListener('unhandledrejection',e=>bootFail(e.reason));
+(async function boot(){
+  try{
+    try{ await idb(); }catch(e){ /* storage denied -> session mode */ }
+    document.body.classList.toggle('ur',S.lang==='ur');
+    await sbInit();
+    updateModePill();
+    await renderGate();
+    setInterval(()=>{ document.querySelectorAll('[data-cd]').forEach(el=>{
+      const left=+el.getAttribute('data-cd')-Date.now();
+      el.textContent=fmtLeft(left);
+      if(left<600000) el.style.color='var(--red)';
+    }); },1000);
+    setInterval(async()=>{ if(S.route==='access'&&canSync()){
+      const box=document.getElementById('auditbox'); if(box) box.innerHTML=await auditHtml();
+    } },10000);
+  }catch(err){ bootFail(err); }
+})();
+function updateModePill(){
+  const lab=document.getElementById('modelabel'), pill=document.getElementById('modepill');
+  if(!lab) return;
+  let txt,online=false;
+  if(S.syncBlocked){ txt='SYNC PAUSED'; }
+  else if(sb()&&S.session){ txt=(STORAGE.mode==='session')?'CONNECTED · PREVIEW TAB':'CONNECTED'; online=true; }
+  else if(sb()){ txt='SIGN IN FOR SYNC'; }
+  else txt=(STORAGE.mode==='session')?'PREVIEW · SESSION ONLY':'DEVICE MODE';
+  lab.textContent=txt;
+  if(pill) pill.classList.toggle('online',online);
+}
+</script>
+</body>
+</html>

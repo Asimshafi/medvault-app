@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MedVault — Consent Gateway</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--line:#dde2e6;--ink:#111a20;--mut:#5f6d76;--blue:#2b4a86;--bluew:#eef2fb;--grey:#f6f8f9;--red:#b42318;--redw:#fdeceb}
+*{box-sizing:border-box}
+body{font:14px/1.6 'Inter',system-ui,sans-serif;margin:0;background:var(--grey);color:var(--ink);-webkit-font-smoothing:antialiased}
+main{max-width:760px;margin:0 auto;padding:26px 18px 60px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.wm{font-family:'Playfair Display',serif;font-size:20px;font-weight:700}
+.wm span{color:#0d7a6f}
+.ro{font:10px 'IBM Plex Mono',monospace;letter-spacing:.12em;color:var(--blue);background:var(--bluew);border:1px solid #d3ddf2;border-radius:6px;padding:5px 9px;text-align:center}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px 16px;margin-bottom:11px}
+.pat .nm{font-family:'Playfair Display',serif;font-size:21px;font-weight:700}
+.row{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.mut{color:var(--mut);font-size:12px}
+.cd{font:600 16px 'IBM Plex Mono',monospace}
+.cd.low{color:var(--red)}
+.scope{font:10px 'IBM Plex Mono',monospace;letter-spacing:.08em;border:1px solid #d3ddf2;background:#fff;color:var(--blue);border-radius:5px;padding:4px 8px}
+.notice{background:var(--bluew);border:1px solid #dfe6f5;color:#2a3f68;font-size:12px;border-radius:10px;padding:10px 13px;margin-bottom:11px}
+.rec{cursor:pointer;transition:.12s}
+.rec:hover{border-color:#b9c7e2}
+.rec .tt{font-weight:600;font-size:14px}
+.rec .detail{display:none;margin-top:10px;border-top:1px solid #eef1f3;padding-top:10px;font-size:13px}
+.rec.open .detail{display:block}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+td{padding:6px 0;border-top:1px solid #eef1f3}
+td.n{text-align:right;font-family:'IBM Plex Mono',monospace}
+tr.hi td.n{color:var(--red);font-weight:600}
+.tag{font:9px 'IBM Plex Mono',monospace;letter-spacing:.08em;background:#f0f2f4;color:var(--mut);border-radius:4px;padding:3px 6px}
+.lockout{text-align:center;padding:60px 24px}
+.lockout h2{font-family:'Playfair Display',serif;font-size:24px;margin:0 0 10px}
+input{font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;width:100%}
+button{font:600 13px 'Inter',sans-serif;border:1px solid var(--blue);background:var(--blue);color:#fff;border-radius:9px;padding:11px 16px;cursor:pointer;width:100%}
+button:disabled{opacity:.5}
+label{display:block;font:9.5px 'IBM Plex Mono',monospace;letter-spacing:.1em;color:#8b969d;margin:12px 0 5px;text-transform:uppercase}
+.err{background:var(--redw);border:1px solid #f1cdc9;color:var(--red);font-size:12.5px;border-radius:9px;padding:9px 12px;margin-top:10px}
+.foot{font:9.5px 'IBM Plex Mono',monospace;color:#8b969d;letter-spacing:.06em;text-align:center;margin-top:26px}
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <div class="wm">Med<span>Vault</span> <span style="font-family:Inter;font-weight:500;font-size:12px;color:var(--mut)">· Consent Gateway</span></div>
+    <div class="ro" id="robadge">READ-ONLY</div>
+  </div>
+  <div id="app"><div class="card">Resolving consent token…</div></div>
+  <div class="foot">MEDVAULT CONSENT GATEWAY · EVERY OPEN IS WRITTEN TO THE PATIENT'S AUDIT LOG</div>
+</main>
+<script>
+'use strict';
+/* MedVault consent gateway — the doctor's side of a QR grant.
+   The grant secret G arrives in the URL FRAGMENT (never sent to any server).
+   Auth = sha256(HKDF(G,'grant-auth')); decryption happens entirely in this tab. */
+const BACKEND={
+  url:'https://dxaolrxrpdkrmonwcwth.supabase.co',
+  anonKey:'sb_publishable_Y0uxVF0NYpjQqNyNBZr-5g_CgV_2p_N'
+};
+const FN=BACKEND.url+'/functions/v1/medvault-gateway';
+const subtle=crypto.subtle, te=new TextEncoder(), td=new TextDecoder();
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const hex2=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+function b64uDec(str){const s=atob(String(str).replace(/-/g,'+').replace(/_/g,'/'));const o=new Uint8Array(s.length);for(let i=0;i<s.length;i++)o[i]=s.charCodeAt(i);return o}
+function stdB64Dec(s){const t=atob(s);const o=new Uint8Array(t.length);for(let i=0;i<t.length;i++)o[i]=t.charCodeAt(i);return o}
+async function hkdf(secret,info){
+  const km=await subtle.importKey('raw',secret,'HKDF',false,['deriveBits']);
+  return new Uint8Array(await subtle.deriveBits({name:'HKDF',hash:'SHA-256',salt:new Uint8Array(32),info:te.encode(info)},km,256));
+}
+const authHashOf=async G=>hex2(await subtle.digest('SHA-256',await hkdf(G,'medvault/grant-auth/v1')));
+async function aeadOpen(key,sealed,aad){
+  const k=await subtle.importKey('raw',key,'AES-GCM',false,['decrypt']);
+  return new Uint8Array(await subtle.decrypt({name:'AES-GCM',iv:sealed.slice(0,12),additionalData:te.encode(aad)},k,sealed.slice(12)));
+}
+async function unwrapDek(G,wrapped,rid){ return aeadOpen(await hkdf(G,'medvault/grant-wrap/v1'),wrapped,'grant-dek:'+rid); }
+async function openPayload(dek,rid,sealed){ return JSON.parse(td.decode(await aeadOpen(dek,sealed,'record:'+rid))); }
+
+const call=(action,body)=>fetch(FN,{method:'POST',headers:{
+  'content-type':'application/json','apikey':BACKEND.anonKey,'authorization':'Bearer '+BACKEND.anonKey
+},body:JSON.stringify({action:action,...body})}).then(async r=>({status:r.status,body:await r.json().catch(()=>({}))}));
+
+const app=$('#app');
+let AUTH=null, POLL=null, ENDT=null;
+
+const G=(function(){const m=/[#&]g=([A-Za-z0-9_-]+)/.exec(location.hash||'');return m?b64uDec(m[1]):null})();
+if(!G){ app.innerHTML='<div class="card">No grant secret in this link. Scan the patient\'s QR code — the secret travels only in the QR, never through a server.</div>'; }
+else boot();
+
+async function boot(){
+  AUTH=await authHashOf(G);
+  let res=await call('resolve',{auth_hash:AUTH});
+  if(res.status===428) return identify();
+  handleResolve(res);
+}
+function identify(){
+  app.innerHTML='<div class="card"><div class="pat"><div class="nm">Identify yourself</div></div>'+
+  '<p class="mut" style="margin:8px 0 0">This is an open consent token, not tied to a named clinician. MedVault records who opened the vault so the patient can see exactly who read their record.</p>'+
+  '<label>Full name</label><input id="idn" placeholder="Dr. …">'+
+  '<label>PMDC registration (recorded, unverified)</label><input id="idr" placeholder="41-2278-K">'+
+  '<div id="iderr"></div><div style="height:14px"></div><button onclick="doIdentify()">Open the shared vault</button></div>';
+}
+async function doIdentify(){
+  const n=($('#idn').value||'').trim();
+  if(!n){ $('#iderr').innerHTML='<div class="err">Your name is required — the audit log never says "unknown".</div>'; return; }
+  const res=await call('resolve',{auth_hash:AUTH,grantee_name:n,grantee_reg:($('#idr').value||'').trim()||null});
+  handleResolve(res);
+}
+async function handleResolve(res){
+  if(res.status===410) return lockout(res.body.error);
+  if(res.status===404) return app.innerHTML='<div class="card">Unknown or deleted token. Ask the patient for a fresh QR.</div>';
+  if(res.status!==200) return app.innerHTML='<div class="card">Error '+res.status+': '+esc(JSON.stringify(res.body).slice(0,200))+'</div>';
+  const {grant,records}=res.body;
+  const out=[];
+  for(const r of (records||[])){
+    try{
+      const dek=await unwrapDek(G,stdB64Dec(r.wrapped_dek_b64),r.id);
+      out.push({...r,payload:await openPayload(dek,r.id,stdB64Dec(r.payload_cipher_b64))});
+    }catch(e){ out.push({...r,payload:{title:'[decryption failed]'}}); }
+  }
+  renderSession(grant,out);
+  ENDT=Date.parse(grant.expires_at);
+  setInterval(tick,1000); tick();
+  POLL=setInterval(async()=>{
+    const s=await call('status',{auth_hash:AUTH});
+    if(s.status===410||['revoked','expired'].includes(s.body&&s.body.status)) lockout((s.body&&s.body.status)||'revoked');
+  },10000);
+}
+function renderSession(grant,records){
+  const groups={};
+  for(const r of records) (groups[r.record_type]=groups[r.record_type]||[]).push(r);
+  let h='<div class="card pat"><div class="row"><div><div class="nm">Shared patient record</div>'+
+    '<div class="mut">Clinician: <b>'+esc(grant.grantee_name||'—')+'</b>'+(grant.grantee_reg?' · '+esc(grant.grantee_reg):'')+'</div></div>'+
+    '<div style="text-align:right"><div class="cd" id="cd">--:--</div><div class="mut" style="font-size:9px;letter-spacing:.1em">SESSION ENDS IN</div></div></div>'+
+    '<div style="margin-top:9px"><span class="scope">SCOPE · '+esc(String(grant.scope).toUpperCase())+'</span> '+
+    '<span class="scope">'+esc(grant.token_display)+'</span></div></div>';
+  h+='<div class="notice">Every record you open is written to the patient\'s audit log with your name and the time. The patient can revoke this session at any moment — mid-session.</div>';
+  if(!records.length) h+='<div class="card mut">The granted scope contains no records yet.</div>';
+  const order=['lab','imaging','rx','dx','visit','proc','vac'];
+  for(const ty of order){
+    if(!groups[ty]) continue;
+    for(const r of groups[ty].sort((a,b)=>a.record_date<b.record_date?1:-1)){
+      const p=r.payload||{};
+      h+='<div class="card rec" data-id="'+esc(r.id)+'" data-title="'+esc(p.title||r.record_type)+'" data-date="'+esc(r.record_date)+'">'+
+        '<div class="row"><span class="tt">'+esc(p.title||r.record_type)+'</span>'+
+        '<span><span class="tag">'+esc(r.record_type.toUpperCase())+'</span> <span class="mut">'+esc(r.record_date)+'</span></span></div>'+
+        '<div class="detail">'+
+        (p.clinician?'<div class="mut">Clinician: '+esc(p.clinician)+(p.facility?' · '+esc(p.facility):'')+'</div>':(p.facility?'<div class="mut">'+esc(p.facility)+'</div>':''))+
+        ((p.analytes&&p.analytes.length)?'<table>'+p.analytes.map(a=>{
+          const m=/^\s*([\d.]+)\s*[–-]\s*([\d.]+)/.exec(a.range||''); const v=parseFloat(a.v);
+          const hi=m&&!isNaN(v)&&(v<parseFloat(m[1])||v>parseFloat(m[2]));
+          return '<tr class="'+(hi?'hi':'')+'"><td>'+esc(a.n)+(a.range?' <span class="mut">'+esc(a.range)+'</span>':'')+'</td><td class="n">'+esc(a.v)+' '+esc(a.u||'')+(hi?' ▲':'')+'</td></tr>';}).join('')+'</table>':'')+
+        ((p.meds&&p.meds.length)?'<table>'+p.meds.map(mm=>'<tr><td><b>'+esc(mm.n)+'</b> '+esc(mm.d||'')+'</td><td class="n">'+esc(mm.f||'')+'</td></tr>').join('')+'</table>':'')+
+        (p.note?'<div style="margin-top:8px">'+esc(p.note)+'</div>':'')+
+        '</div></div>';
+    }
+  }
+  app.innerHTML=h;
+  document.querySelectorAll('.rec').forEach(el=>{
+    let logged=false;
+    el.addEventListener('click',()=>{
+      el.classList.toggle('open');
+      if(!logged){ logged=true;
+        call('log',{auth_hash:AUTH,action:'viewed',detail:'Viewed record: '+el.getAttribute('data-title')+' ('+el.getAttribute('data-date')+')'});
+      }
+    });
+  });
+}
+function tick(){
+  const el=$('#cd'); if(!el||!ENDT) return;
+  const left=Math.max(0,ENDT-Date.now());
+  const m=Math.floor(left/60000),s=Math.floor(left/1000)%60;
+  el.textContent=(m>59? Math.floor(m/60)+'h '+String(m%60).padStart(2,'0')+'m' : String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'));
+  if(left<600000) el.classList.add('low');
+  if(left<=0) lockout('expired');
+}
+function lockout(kind){
+  if(POLL) clearInterval(POLL);
+  app.innerHTML='<div class="card lockout"><h2>'+(kind==='expired'?'Token expired':'Access revoked')+'</h2>'+
+  '<p class="mut">'+(kind==='expired'?'This consent token reached its expiry — access ends by itself.':'The patient ended this session from their phone.')+
+  ' The session key is gone; nothing viewed here is cached. A new session needs a new QR from the patient.</p></div>';
+  document.getElementById('robadge').textContent='SESSION ENDED';
+}
+</script>
+</body>
+</html>
