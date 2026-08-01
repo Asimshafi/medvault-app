@@ -206,7 +206,9 @@ const BACKEND = {
   url:'https://dxaolrxrpdkrmonwcwth.supabase.co',
   anonKey:'sb_publishable_Y0uxVF0NYpjQqNyNBZr-5g_CgV_2p_N',
   functionsUrl:'https://dxaolrxrpdkrmonwcwth.supabase.co/functions/v1',
-  gatewayUrl:'https://asimshafi.github.io/medvault-app/gateway.html'
+  // Host-agnostic: derive our own origin so magic-link + gateway work on ANY host.
+  get appUrl(){ return location.origin + location.pathname.replace(/[^/]*$/, ''); },
+  get gatewayUrl(){ return this.appUrl + 'gateway.html'; }
 };
 
 /* ---------------- crypto core (mirrors @medvault/core, tested) ---------------- */
@@ -327,7 +329,7 @@ async function sbInit(){
 }
 async function sendOtp(email){
   const c=sb(); if(!c) return {error:'no backend'};
-  const {error}=await c.auth.signInWithOtp({email:email,options:{shouldCreateUser:true,emailRedirectTo:'https://asimshafi.github.io/medvault-app/'}});
+  const {error}=await c.auth.signInWithOtp({email:email,options:{shouldCreateUser:true,emailRedirectTo:BACKEND.appUrl}});
   return {error:error?(error.message||String(error)):null};
 }
 async function verifyOtpCode(email,code){
